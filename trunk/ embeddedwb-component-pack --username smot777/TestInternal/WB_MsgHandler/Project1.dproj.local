@@ -1,9 +1,0 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<BorlandProject>
-	<Transactions>
-    <Transaction>2009.01.10 09:20:31.371.pas,C:\Dokumente und Einstellungen\Administrator\Eigene Dateien\RAD Studio\Projects\Unit1.pas=C:\Programme\Borland\Delphi6\Projects\WBWheelFalshTest\unit1.pas</Transaction>
-    <Transaction>2009.01.10 09:20:31.431.dfm,C:\Dokumente und Einstellungen\Administrator\Eigene Dateien\RAD Studio\Projects\Unit1.dfm=C:\Programme\Borland\Delphi6\Projects\WBWheelFalshTest\unit1.dfm</Transaction>
-    <Transaction>2009.01.10 09:20:36.669.dproj,C:\Dokumente und Einstellungen\Administrator\Eigene Dateien\RAD Studio\Projects\Project2.dproj=C:\Programme\Borland\Delphi6\Projects\WBWheelFalshTest\Project2.dproj</Transaction>
-    <Transaction>2009.01.10 10:51:51.451.dproj,C:\Programme\Borland\Delphi6\Projects\WBWheelFalshTest\Project2.dproj=C:\Programme\Borland\Delphi6\Projects\WB_MsgHandler\Project1.dproj</Transaction>
-  </Transactions>
-</BorlandProject>
