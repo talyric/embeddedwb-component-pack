@@ -1,0 +1,109 @@
+Here's a cool example of what can be done. This code uses a TWebbrowser that is navigated to a form
+to submit data from the Delphi program. You would need to change the info in this function call: 
+
+'GetOptions.aspx', {FormAction}
+             'Options Page', {FormTitle}
+             ['OptionsList', 'OptionsList', 'OptionsList'] {AFields},
+             ['0', '0', '1'] {AFieldValues} 
+
+to correlate to the data you wanted to send.
+
+
+function FormSubmit
+  ( AFormAction:           String
+  ; AFormTitle:            String
+  ; AFields:               Array of String
+  ; AFieldValues:          Array of String
+  ) : Boolean;
+var
+  ShellWindow: IShellWindows;
+  WB: IWebbrowser2;
+  spDisp: IDispatch;
+  IDoc1: IHTMLDocument2;
+  Form: IHTMLFormElement;
+  Document: Variant;
+  k, m: Integer;
+  ovElements: OleVariant;
+  i: Integer;
+  IEFieldsCounter: Integer;
+  btnElement: Integer;
+begin
+  ShellWindow := CoShellWindows.Create;
+  // get the running instance of Internet Explorer
+  for k := 0 to ShellWindow.Count do
+  begin
+    spDisp := ShellWindow.Item(k);
+    if spDisp = nil then Continue;
+    // QueryInterface determines if an interface can be used with an object
+    spDisp.QueryInterface(iWebBrowser2, WB);
+    if WB <> nil then
+    begin
+      WB.Document.QueryInterface(IHTMLDocument2, iDoc1);
+      btnElement := -1;
+      if iDoc1 <> nil then
+      begin
+        WB := ShellWindow.Item(k) as IWebbrowser2;
+        Document := WB.Document;
+        // if correct instance...
+        if Pos(AFormTitle, Document.Title) <> 0 then
+        begin
+          // count forms on document and iterate through its forms
+          IEFieldsCounter := 0;
+          for m := 0 to Document.forms.Length - 1 do
+          begin
+            Form := IDispatch(Document.Forms.Item(m)) as IHTMLFormElement;
+            if Pos(UpperCase(AFormAction), UpperCase(Form.action)) > 0 then
+            begin
+              ovElements := Document.forms.Item(m).elements;
+
+              // iterate through elements
+              for i := 0 to ovElements.Length -1 do
+              begin
+                try
+                // if input fields found, try to fill them out
+                  if (UpperCase(ovElements.item(i).type) = 'SUBMIT') or
+                     (UpperCase(ovElements.item(i).type) = 'IMAGE') then
+                  begin
+                      btnElement := i;
+                  end;
+                  if not ( (UpperCase(ovElements.item(i).type) = 'CHECKBOX') or
+                           (UpperCase(ovElements.item(i).type) = 'RADIO') ) then
+                  begin
+                    if (LowerCase(ovElements.item(i).name) = LowerCase(AFields[i])) then
+                    begin
+                        ovElements.item(i).Value := AFieldValues[i];
+                        inc(IEFieldsCounter);
+                    end;
+                  end
+                  else
+                  begin
+                    if StrToInt(AFieldValues[i]) = 1 then
+                    begin
+                      ovElements.item(i).Checked := True;
+                    end
+                    else
+                    begin
+                      ovElements.item(i).Checked := False;
+                    end;
+                    inc(IEFieldsCounter);
+                  end;
+                except
+                  // failed...
+                end;
+              end; { for i...}
+              if btnElement > -1 then
+              begin
+                ovElements.item(btnElement).click;
+              end
+              else
+              begin
+                Document.forms.Item(m).submit;
+              end;
+            end;
+          end;  { for m }
+        end;  {if Pos(AFormTitle, ...}
+      end;  { idoc <> nil }
+    end; { wb <> nil }
+  end;  { for k }
+
+end;

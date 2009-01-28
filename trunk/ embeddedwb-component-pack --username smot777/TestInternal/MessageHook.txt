@@ -1,0 +1,127 @@
+(*function MessageHook(var Msg: TMessage): Boolean;
+var
+  ActiveControl: TWinControl;
+  ParentForm: TCustomForm;
+begin
+  Result := False;
+  case msg.Msg of
+    CM_ACTIVATE:
+      begin
+        // HandleDialogBoxes(Msg);
+        ParentForm := Screen.ActiveForm;
+        if Assigned(ParentForm) then
+        begin
+          ActiveControl := ParentForm.ActiveControl;
+          if Assigned(ActiveControl) and (ActiveControl is TEmbeddedWB) then
+            PostMessage(ActiveControl.Handle, WM_SETWBFOCUS, Integer(ActiveControl), 0);
+        end;
+      end;
+  end;
+end;
+
+ { if not bMainWindowHooked then
+  begin
+  //  Forms.Application.HookMainWindow(MessageHook);
+    bMainWindowHooked := True;
+  end; }
+
+//  if bMainWindowHooked then
+//    Forms.Application.UnhookMainWindow(MessageHook);
+
+*)
+
+
+
+
+----------------------------------------------------------------------------
+
+
+
+  function ProcessKeyForBrowser(WB: TEmbeddedWB; const Msg: TMsg): Boolean;
+  var
+    Key: TWMKey;
+  begin
+    ZeroMemory(@Key, SizeOf(Key));
+    Key.Msg := Msg.message;
+    Key.CharCode := msg.wParam;
+    Key.KeyData := msg.lParam;
+    Key.Result := 0;
+    Result := Screen.ActiveForm.IsShortCut(Key);
+  end;
+
+  function GetFocussedEWB: TEmbeddedWB;
+  var
+    ActiveControl: TWinControl;
+    ActiveForm: TCustomForm;
+  begin
+    Result := nil;
+    ActiveForm := Screen.ActiveForm;
+    if Assigned(ActiveForm) then
+    begin
+      ActiveControl := ActiveForm.ActiveControl;
+      if (ActiveControl.ClassName = 'TEmbeddedWB') then
+        Result := (ActiveControl as TEmbeddedWB);
+    end;
+  end;
+
+
+const
+  StdKeys = [VK_TAB, VK_RETURN, VK_BACK]; { standard keys }
+  ExtKeys = [VK_DELETE, VK_LEFT, VK_RIGHT, VK_UP, VK_DOWN]; { extended keys }
+  fExtended = $01000000; { extended key flag }
+var
+  CurrentEWB: TEmbeddedWB;
+
+begin
+  Handled := False;
+  CurrentEWB := GetFocussedEWB;
+  if Assigned(CurrentEWB) then
+    if Assigned(CurrentEWB.Document) then
+    begin
+      if IsChild(CurrentEWB.Handle, Msg.Hwnd) then
+      begin
+        if (KeyDataToShiftState(msg.lParam) = [ssAlt]) then
+        begin
+          Handled := False;
+          Exit;
+        end;
+        case Msg.message of
+          WM_KEYDOWN:
+            begin
+              Handled := ProcessKeyForBrowser(CurrentEWB, Msg);
+              if Handled then Exit;
+            end;
+        end;
+
+        Handled := (IsDialogMessage(CurrentEWB.Handle, Msg) = True);
+        if Handled and not CurrentEWB.Busy then
+          if ((Msg.Message >= WM_KEYFIRST) and (Msg.Message <= WM_KEYLAST)) and
+            ((Msg.wParam in StdKeys) or (GetKeyState(VK_CONTROL) < 0) or
+            (Msg.wParam in ExtKeys) and ((Msg.lParam and fExtended) = fExtended)) then
+          begin
+            Handled := (CurrentEWB.Application as IOleInPlaceActiveObject).TranslateAccelerator(Msg) = S_OK;
+            if not Handled then
+            begin
+              Handled := True;
+              TranslateMessage(Msg);
+              DispatchMessage(Msg);
+            end;
+          end;
+      end;
+    end;
+
+
+
+-----------
+
+
+    WM_LBUTTONUP:
+      if Assigned(FOnMouseUp) then
+        FOnMouseUp(Self, mbLeft, KeysToShiftState(TWMMouse(Msg).Keys), TWMMouse(Msg).XPos, TWMMouse(Msg).YPos);
+    WM_RBUTTONUP:
+      if Assigned(FOnMouseUp) then
+        FOnMouseUp(Self, mbRight, KeysToShiftState(TWMMouse(Msg).Keys), TWMMouse(Msg).XPos, TWMMouse(Msg).YPos);
+    WM_MOUSEMOVE:
+      if Assigned(FOnMouseMove) then
+        FOnMouseMove(Self, KeysToShiftState(TWMMouse(Msg).Keys), TWMMouse(Msg).XPos, TWMMouse(Msg).YPos);
+

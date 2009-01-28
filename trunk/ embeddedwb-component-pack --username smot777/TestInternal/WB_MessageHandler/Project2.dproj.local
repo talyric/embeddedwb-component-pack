@@ -1,0 +1,8 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<BorlandProject>
+	<Transactions>
+    <Transaction>2009.01.11 20:16:41.660.pas,C:\Dokumente und Einstellungen\Administrator\Eigene Dateien\RAD Studio\Projects\Unit1.pas=C:\Programme\Borland\Delphi6\Projects\WB_MessageHandler\unit1.pas</Transaction>
+    <Transaction>2009.01.11 20:16:41.690.dfm,C:\Dokumente und Einstellungen\Administrator\Eigene Dateien\RAD Studio\Projects\Unit1.dfm=C:\Programme\Borland\Delphi6\Projects\WB_MessageHandler\unit1.dfm</Transaction>
+    <Transaction>2009.01.11 20:16:46.477.dproj,C:\Dokumente und Einstellungen\Administrator\Eigene Dateien\RAD Studio\Projects\Project2.dproj=C:\Programme\Borland\Delphi6\Projects\WB_MessageHandler\Project2.dproj</Transaction>
+  </Transactions>
+</BorlandProject>

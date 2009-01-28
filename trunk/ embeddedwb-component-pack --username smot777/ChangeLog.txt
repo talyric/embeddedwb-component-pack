@@ -1,0 +1,2350 @@
+=============================================================
+Version 14.67.3 - XX.XX.2009 - by smot
+=============================================================
+
+* unit TEmbeddedWB.pas
+
+- Improved: MouseWheelFix focus detection. 
+
+- Fix: EWB didn't scroll if the mouse was over a flash content while it had not the focus & other issues fixed
+
+- Fix: EWB instance created during runtime hangs if LoadSettings() is called.
+       (only if directive Enable_SubClassChildWindows is enabled)
+       -> Solution: Calling InitEWBChildHook in OnCreate() solves the problem.
+
+- Fix: ShowAboutBox reintroduce; {to avoid error if member not found}
+
+- Fix: Property value is always False after setting e.g. Silent to True in the object inspector 
+       Solution (Workaround): reintroduced SetRegisterAsDropTarget, GetRegisterAsDropTarget, SetRegisterAsBrowser,       
+       GetRegisterAsBrowser, SetSilent, GetSilent
+
+- Changed: Property UnSelectAll changed to Property ClearSelection {OLECMDID_CLEARSELECTION}
+- Changed: property Name: string read GetName write SetName; (To assign a Name for a EWB instance created at runtime)
+- Changed: Added ATitle Parameter for SaveDialogEx(AFilter: string = ''; ATitle: string = '')
+- Changed: GetSelLength now works with frames
+- Changed: Method Print(). If PrintOptionsEnabled, Print uses the Header / Footer defined in PrintOptions.Header, PrintOptions.Footer
+- Changed: WaitWhileBusy(TimeOut: Longword = 0) to a function. // Returns True if TimeOut reached or Cancel set in OnBusyWait handler
+
+- Added: Property Delete; {OLECMDID_DELETE}
+- Added: Property PasteSpecial; {OLECMDID_PASTESPECIAL}
+- Added: Property Undo; {OLECMDID_UNDO}
+- Added: Property Redo; {OLECMDID_REDO}
+- Added: function GetActiveFrame(): IHTMLDocument2; overload;
+- Added: function GetActiveFrame(doc: IHTMLDocument2): IHTMLDocument2; overload;
+- Added: function GetActiveElement(Doc: IHTMLDocument2 = nil): IHTMLElement;
+- Added: function GetSelectedText(bTopLevel: Boolean = True; ReturnAsHTML: Boolean = False): string; {also works with frames}
+
+- Added: OnKeyDown, OnKeyUp, OnClick events
+
+- Added: function IsCommandEnabled(sCmdId: WideString): Boolean;
+- Added: function QueryCommandValue(sCmdId: WideString): OleVariant;
+         E.g: QueryCommandValue('fontname') returns the fontname of the seleted text
+
+- Added: bWait Parameter to AssignEmptyDocument() -> procedure AssignEmptyDocument(bWait: Boolean = False);
+
+- Added: Method function TEmbeddedWB.NavigateWait(const URL: WideString; TimeOut: Longword = 0): Boolean;
+         // Instead of EmbeddedWB1.Navigate('..'); EmbeddedWB1.Wait(5000); write NavigateWait('..', 5000);
+
+
+- Removed: GetSelText, GetSelTextHTML (replaced with GetSelectedText that works with frames)
+
+- Removed methods from EmbeddedWB (still available in EWBTools.pas)
+
+    function OpenAddressBook: Boolean;
+    function OpenCalendar: Boolean;
+    function OpenEudoraMail: Boolean;
+    function OpenGoogleMail: Boolean;
+    function OpenHotmailMail: Boolean;
+    function OpenNetMeeting: Boolean;
+    function OpenNewsClient: Boolean;
+    function OpenOutlookExpressMail: Boolean;
+    function OpenOutlookMail: Boolean;
+    function OpenRegistryEditor: Boolean;
+    function OpenYahooMail: Boolean;
+
+* Unit EWBCore;
+
+  Added: procedure TCustomEmbeddedWB.SetFocusToBody;
+
+* unit EWBTools:
+
+- Changed: InvokeCMD is now a function which returns HRESULT
+- Changed: Functions that call InvokeCmd now return a Result value {also changed methods in TEmbeddedWB}
+
+* unit TFavoritesPopup
+
+- Fix: AddFavorite()  {pointed out by qiurun, http://bsalsa.com/forum/showthread.php?p=4183#post4183 }
+
+* NEW: Component EwbControl (EwbControlComponent.pas)
+
+  This component encapsulates the two units EwbFocusControl.pas and EwbMouseHook.pas into an easy-to use component.
+  Main features: Enable / Disable FocusControl and MouseWheelFix at runtime. 
+
+* unit EwbFocusControl.pas (NEW)
+
+  Moved "HookMainWindow"-Code to this unit.
+  TEWBFocusControl takes care of setting the focus back on EWB when switching back to the application or  
+  switching between forms. Also fixed MDI handling.
+
+* unit EWBMouseHook.pas (NEW)
+
+  Moved "MouseWheelFix"-Code to this unit.
+
+* TWebUpdater:
+
+  - Fully localized;
+  - Bugs fixed 
+  - formated, code cleaning
+
+* THistoryMenu:
+  
+ - Bugfix (pointed out by t-rex, http://www.bsalsa.com/forum/showthread.php?t=589)
+
+* SendMail_For_Ewb.pas:
+
+  Fixed memory leak in SendEMailByMAPI().
+
+* TIEDownload:
+
+  Bugfixes.
+
+* Added 2 new Demos: 
+  + 17 - THtmlListener_Demo
+  + 18 - TEWBControl_Demo
+  * Updated other Demos
+
+* Many other Minor Fixes & Code Cleanup
+
+=============================================================
+Version 14.67.2 - 09.01.2009 - by smot
+=============================================================
+
+- Fix: TEmbeddedWB freezes when scrolling with a mouse wheel (if Enable_MouseWheelFix enabled)
+  -> Solution: Fix in MouseHookProc
+
+=============================================================
+Version 14.67.0 - MAJOR CHANGE - 07.01.2009 - by smot / AHUser
+=============================================================
+(Read the migration hints in the middle of the change log)
+
+Changes by AHUser:
+
+  - Fix: Much improved Delphi 2009 Unicode support
+       (MAPI is ANSI only)
+  - Fix: many (possible) buffer overflows
+  - Fix: Delphi 5 compatibility restored
+  - Fix: Memory leaks in TWebUpdater
+  - Fix: invalid pointers to already released local string variables (TEmbeddedWB.FormWndProc)
+  - Fix: access violations in WBExecScript (vtString, vtAnsiString and vtChar used TVarRec.VString instead of their own union)
+  - Fix: TIEParser.Go used a field to point to a local Char-Array
+  - Added: more supported parameter types for WBExecScript
+
+Changes by smot:
+
+* unit TEmbeddedWB.pas
+  
+  - Fix: Hide / Show methods don't update the "Visible" property
+    -> Solution: Added FVisible := MSG.WParam = 1; in CMVisibleChanged
+
+  - Fix: Wait() blocks if called in OnCreate or no handle is allocated
+    -> Solution: Check if HandleAllocated
+
+  - Fix: The Fix from 14.66.5 " Catch WA_ACTIVE and WA_CLICKACTIVE to set Focus back to EWB if it is the active control) .
+    -> Using HookMainWindow to catch CM_ACTIVATE (Unit EwbApplicationHook)
+
+  - Fix: Clicking on TEmbeddedWb while SysListView32 is active doesn't make it the ActiveControl
+    -> Solution: Subclassed "SysListView32" control
+ 
+  - Fix: GetCookie raises an Error if no document loaded.
+    -> Solution: Check if DocumentLoaded
+
+  - Change: overrode the property "Name" to return the Delphi TObject.Name. 
+    -> Instead of TControl(TEmbeddedWB).Name you can write TEmbeddedWB.Name
+
+  - Change: overrode the property "HWND" as it only throws an exception when accessing it from Webbrowser control.
+    -> HWND now returns the handle to "Internet Explorer_Server" or "SysListView"
+       Hint: EmbeddedWB.Handle returns the handle to the Webbrowser Object.
+
+  - Change: Removed " if (FProxySettings.FAddress <> '') then" in RefreshProxy() to allow removing of Proxy Server.
+
+  - Change: DesignMode is now a property: DesignMode: Boolean read GetDesginMode write SetDesginMode;
+
+  - Added: property OnBusyWait:TOnBusyWait read FOnBusyWait write FOnBusyWait;
+           Added FOnBusyWait in WaitWhileBusy(), Wait() 
+  
+  - Added: optional Timout Parameter in Wait(TimeOut: Longword = 0) and WaitWhileBusy(TimeOut: Longword = 0)
+     
+  - Added: A stub for the "Resizable" property as the WebBrowser object returns an error from this property (msdn)
+
+  - Added: AFilter Parameter to SaveDialogEx(AFilter: string = ''): string;
+      to call the dialog with custom filters (or to localize)
+
+  - Added a Sender parameter to some methods:
+
+      >>**** Migration hints:**************************************************************************
+
+      On compiling or saving old projects an errors like this may occur because of the changes in in the parameters:
+
+      "The <Method Name> method referenced by <Form Name>.<Event Name> has an incompatible parameter list. 
+      Remove the reference?".
+
+      If this happens do not remove the reference, click on "Cancel" and change the 
+      parameters for the methods as listed below by hand
+
+      <<<**********************************************************************************************
+
+      -> Event OnFilterPopupMenu
+
+      procedure FilterPopupMenu(Sender: TObject; ID: Cardinal; Menu: HMENU;
+        const Context: IDispatch);
+
+      -> Event OnGetDropTarget
+
+      procedure GetDropTarget(Sender: TCustomEmbeddedWB; var DropTarget: IDropTarget);
+
+      -> Event OnMessage
+
+      procedure Message(Sender: TObject; var Msg: TMessage;
+        var Handled: Boolean);
+
+      -> Event OnShowHelpRequest
+
+      function ShowHelpRequest(Sender: TObject; HWND: Cardinal;
+        pszHelpFile: PWideChar; uCommand, dwData: Integer; ptMouse: TPoint;
+        var pDispatchObjectHit: IDispatch): HRESULT;
+
+      -> Event OnShowMessage
+
+      function ShowMessage(Sender: TObject; HWND: Cardinal; lpstrText,
+        lpstrCaption: PWideChar; dwType: Integer; lpstrHelpFile: PWideChar;
+        dwHelpContext: Integer; var plResult: Integer): HRESULT;
+
+      -> Event OnZoomPercentChange
+
+      function ZoomPercentChange(Sender: TCustomEmbeddedWB;
+        const ulZoomPercent: Cardinal): HRESULT;
+
+
+          <<<**********************************************************************************************
+
+      Removed: ViewPageFieldsToString, ViewPageImagesToString, ViewPagePropertiesToStrings
+
+
+* Unit EWBCore;
+
+  - Fix: Trapping of WM_SETFOCUS "Internet Explorer Server" child doesn't work anymore after it is destroyed.
+    -> Solution: Calling FOnHookChildWindows again in CommandTarget_Exec if nCmdID = OLECMDID_PREREFRESH
+
+
+* Unit EWBTools;
+
+  - Added: procedure ClearSessionCookies;
+
+  - Removed: function OpenOtherWBFavorites that navigates to 'c:\newbook.htm' (useless)
+
+  - Change: function GetFrameFromDocument: Added: " if Supports(Unk, IWebBrowser2, Result) then" (reported by perva 2008/12/10)
+  
+  - Change: function SearchText: Added aTypeSearch Parameter to indicate the type of search. 
+
+  - Fix: GetIPAndHostName (D5 - D2009)
+
+* Unit IEParser;
+  
+  Fix: Changed doc._Release to Doc := nil; (suggested by phzongna)
+  Fix: Changed E.GetAttribute('Source', 0); to E.GetAttribute('Src', 0); (reported by JohnS)
+
+
+* EWB.inc - Embedded Webbrowser definitions:
+
+  // ** Activated by default:
+
+  // Use functions from EwbTools.pas
+  {$DEFINE USE_EwbTools}
+
+  // Enable Mouse Hook to catch WM_MOUSEWHEEL and set Focus on TEmbeddedWB while not active
+  {$DEFINE Enable_MouseWheelFix} 
+
+  // Enable Subclassing of TEmbeddedWB Child windows (focus issues, ActiveControl, TAB and ActiveControl)
+  {$DEFINE Enable_SubClassChildWindows} 
+
+  // Enable FormWndProc "Hooking" to handle Dialog Boxes /Popups
+  {$DEFINE Enable_HookParentFormWndProc}
+
+  // Enable HookMainWindow to catch CM_ACTIVATE (EWB focus issue when switching back to the application)
+  {$DEFINE Enable_HookMainWindow}
+
+  // ** Deactivated by default:
+
+  // enable DDE Support EwbDDE.pas
+  {.$DEFINE USE_EwbDDE} 
+
+  // enable MSHTML events (MSHTMLEvents.pas)
+  {.$DEFINE Enable_EwbMSHTMLEvents} 
+
+  // Enable Mouse Events (OnEnter, OnExit, OnMove) in TEmbeddedWB (D5, D6, D7 only)
+  {.$DEFINE Enable_MouseEvents} 
+
+  // Enable OleCtrls Fix (experimental)
+  {.$DEFINE USE_OleCtrlsFix}
+
+  // Enable Debugging with GExperts
+  {.$DEFINE Enable_Debug} 
+
+* Demos: 
+  
+  - Fixed Elements_Under_Mouse_Demo (reported by T-W: http://www.bsalsa.com/forum/showpost.php?p=4102&postcount=4)
+  - Fixed Mega Demo
+  - Updated all Demos, some code cleaning & minor fixes
+
+======================================
+Version 14.66.5 - 21.12.2008 - by smot
+======================================
+
+* unit TEmbeddedWB.pas & IEParser.pas
+
+  - DonloadInSilentMode had a typo. Changed to DownloadInSilentMode
+
+* unit TEmbeddedWB.pas
+
+
+   - Fix: Visible Property doesn't work properly. 
+          IMPORTANT: When migrating your existing projects to the new version       
+          make sure that the Visible Property is set to True in the Object Inspector if you want TEmbeddedWB to be visible.
+
+   - Fix: OnVisible Event is not fired. 
+          -> Solution: CM_VISIBLECHANGED handler added
+         
+   - Fix: Added DirectoryExists() for D5 in EwbCoreTools.pas
+ 
+   - Fix: TEmbeddedWb is not focused when switching to another application and then Alt+Tab back 
+   - Fix: TEmbeddedWb is not focused again when opening another form/dialog and closing it again while EWB has the focus
+ 
+          -> Solution: In FormWndProc: Catch WA_ACTIVE and WA_CLICKACTIVE to set Focus back to EWB if it is the active control)
+
+   - Fix: TEmbeddedWb needs to be focused first before the mouse wheel can scroll the document
+          -> Solution: Catching CM_MOUSEWHEEL in FormWndProc)
+
+   - Fix: Clicking on TEmbeddedWb, doesn't make it the ActiveControl
+   - Fix: OnEnter and OnExit Events don't work.
+          
+          -> Solution: Subclassed "Ineternet Explorer Server" and "ShellDocObj")
+          Enable_HookChildWindows must be defined in EWB.inc -> {$DEFINE Enable_HookChildWindows}
+	  *Enabled by default*
+
+   - Fix: Modified TEmbeddedWB.Go() to compile under D5
+
+   - Added: TEmbeddedWB.UnSelectAll;
+
+   - Added: OnWindowStateChanged Event. Note: It is available only in Microsoft Windows XP Service Pack 2 (SP2) or later.          
+
+* unit SHDocVw_EWB.pas
+   
+   - Added: unit OleCtrlsFix. USE_OleCtrlsFix must be defined in EWB.inc. {$IFDEF USE_OleCtrlsFix} 
+     *Disabled by default*
+    // details: http://www.bsalsa.com/forum/showthread.php?t=361
+
+
+* unit FavoritesListView.pas
+
+   -Added: RefreshList method
+
+* unit EwbCore.pas
+
+  Enabled the IProtectFocus interface (IE7)
+  Moved the OnAllowFocusChange property to the published section.
+
+* Demos: 
+
+  - Added: Events Test Demo
+
+
+=====================================
+Version 14.66.4 - 10.11.2008 - by smot
+======================================
+
+* unit TEmbeddedWB.pas
+  
+  - Added: procedure ExecScript(WebBrowser: TEmbeddedWB; sExpression, sLanguage: string); 
+   {implemented in EWBTools.pas}
+  
+  - Added: function ExecScriptEx(WebBrowser: TEmbeddedWB; MethodName: string; ParamValues: array of const): OleVariant;
+   {implemented in EWBTools.pas}
+  
+  - Added: private property Encoding to control stream encoding (only D2009), default: Encoding := TEncoding.Default;
+    Usage example: EmbeddedWB1.Encoding := TEncoding.UTF8; EmbeddedWB1.LoadFromString(Memo1.Text);
+
+  - Changed: LoadFromString, LoadFromWideString, LoadFromStrings (to support Encoding)
+
+  - Changed: {$DEFINE USE_EwbMSHTMLEvents} to {$DEFINE Enable_EwbMSHTMLEvents}
+
+  - Added 2 mouse events  (Not yet working in D2005-D2009)
+
+    property OnMouseLeave: TNotifyEvent read FOnMouseLeave write FOnMouseLeave;
+    property OnMouseEnter: TNotifyEvent read FOnMouseEnter write FOnMouseEnter;
+
+  - Added: directive {.$DEFINE Enable_MouseEvents} // Enable Mouse Events in TEmbeddedWB, disabled by default 
+  
+  - Added: OnMessage Handler (which is in WndProc). Allows you to catch / modify events which come trough WndProc
+  
+
+* unit EWBTools.pas
+  
+  - replaced FillForm() with a new one (http://www.bsalsa.com/forum/showthread.php?t=499)
+  - Fix: Warnings W1044 Suspicious typecast of string to PAnsiChar (in proxy functions)
+
+
+* unit MSHTMLEvents.pas
+
+  - Added: {$WARN SYMBOL_PLATFORM OFF} 
+
+* unit EwbCoreTools.pas
+  
+  - Added: CharInSet function (for Delphi versions < D2009)
+
+
+* Packages:
+
+  - Added: '..\Source\MSHTMLEvents.pas' 
+
+* Demos: 
+  
+  - Added: ExecScriptEx Demo
+  - Updated: RightClick_Demo (corrections & simplification)
+
+* Renamed EWB.inc to EWB_Compilers.inc 
+  Created new EWB.inc with EmbeddedWB definitions
+
+
+===================================
+Version 14.66.3 - by smot
+===================================
+
+* unit EwbCore.pas
+
+ - Change: "EnablesFormsAutoComplete" is set to True by default  ->  UserInterfaceOptions := [EnablesFormsAutoComplete];
+
+
+* unit TEmbeddedWB.pas
+  
+ - Added SinkComponent to trap HTML Events (TMSHTMLHTMLDocumentEvents)
+ - Addded conditional symbol USE_EwbMSHTMLEvents to Enable SinkComponent (enabled by default)
+
+ - Added: New Type TUserAgentMode = (uaDefault, uaInternal, uaRegistry);
+
+    uaDefault: use default IE UserAgent
+    uaInternal: use custom UserAgent for EWB.
+    uaRegistry: set custom UserAgent through registry, globally
+
+
+ - Added: TProxySettings.FUserAgent
+
+ - Added: TEmbeddedWB.RefreshProxy to Refresh Proxy settings during runtime.
+   Usage:
+     with EmbeddedWB1.ProxySettings do
+     begin
+      Address := ..
+      Port := ..
+     end;
+     EmbeddedWB1.RefreshProxy;
+
+ - Added: TEmbeddedWB.HScrollBarVisible : Boolean; // Returns True if the horizontal scrollbar is visible
+          TEmbeddedWB.VScrollBarVisible : Boolean; // Returns True if the vertical scrollbar is visible
+
+   Added: public function TEmbeddedWB.HScrollBarPosition : Integer; // Returns the horiz. scrollbar position
+          public function TEmbeddedWB.VScrollBarPosition : Integer; // Returns the vertical scrollbar position
+
+ - Added  public function GetFieldValue(FieldName: string): string;
+
+* unit EWBTools.pas
+
+  Added: procedure GetScrollbarVisibility(WebBrowser: TEmbeddedWB; var HScroll, VScroll: Boolean);
+  Added: function GetScrollBarPosition(WebBrowser: TEmbeddedWB; var ScrollPos: TPoint): Boolean;
+  Added: function GetFieldValue(OleObject: Variant; FieldName: string): string;
+
+* unit TIETravellog.pas
+
+  Fix: Removed these 2 lines from TIETravelLog.Connect:
+       - Embeddedwb.AssignEmptyDocument;
+       - Embeddedwb.Wait;
+
+* Added unit MSHTMLEvents.pas for Event sinking.
+
+* Added a new Demo: Demos\EmbeddedWB Demos\MSHTML_Events to demonstrate SinkComponent
+
+* Split the Demos directory up into EmbeddedWB Demos, Various Demos, Archives
+
+===================================
+Version 14.66.2 - by smot
+===================================
+
+
+* General:
+  
+  - Moved the packages to the \Packages folder
+  - Renamed ReadMe.txt to ReadMe_Install.txt
+
+
+* unit TEmbeddedWB.pas
+
+  - Fix: Try...Except around  DDEInitiate(WParam, LParam) // http://www.bsalsa.com/forum/showthread.php?t=609
+  - Fix: TEmbeddedWB.Go() fails when navigating to a local folder e.g. 'c:\'  (tested with IE 8, XP SP3)
+  - Fix: if DirectoryExists() = True then prefix 'file:///' 
+  - Fix: Corrected the URLS in TEmbeddedWB pointing to msdn.
+  - Added: mUnknown to TMeasure
+   
+
+ 
+* unit EwbCore.pas
+
+  - Fix to TCustomEmbeddedWB.DoFilterMsg because of some issues with non-standard characters.
+   // http://www.bsalsa.com/forum/showthread.php?t=763
+
+  - Fix: memory leak reported by akirabbq. OnAmbientPropertyChange(DISPID_AMBIEN T_DLCONTROL)
+    http://www.bsalsa.com/forum/showthread.php?t=762
+
+  - Added: If a TPopUpMenu is assigned then the assigned TPopUpMenu is shown.
+           DisabledPopupMenus := [rcmAll] must be set (in the Object Inspector)
+
+* Many small fixes and code cleanup
+
+
+===================================
+Version 14.66.1 - by smot
+===================================
+
+This version adds some constants for IE8, D2009 compatibility and includes some fixes / changes.
+
+* file EWB.inc:
+
+Added D2007, D2009 defines.
+
+     {$IFDEF DELPHI_13_UP}
+     {$ELSE}
+     {$ENDIF}
+
+
+* EWBCore.pas:
+
+EnableThemes is set to True by default (I think this makes sense) ->  UserInterfaceOptions := [EnableThemes];
+
+
+* unit TEmbeddedWB.pas
+
+- Removed the Wait() in TEmbeddedWB.GetFrame as it could block
+- Modified Visible Property to work properly. Instead of TControl(TEmbeddedWB).Visible you can write TEmbeddedWB.Visible
+- Bsalsa UserAgent is not automatically set anytime anymore as it causes some problems. 
+  -> Modified SetUserAgent. Renamed RemoveUserAgent to RestoreUserAgent
+- Fix: Handle M_GETDLGCODE message in TEmbeddedWB.WndProc
+
+* unit IEConst:
+
+- Added constants that are missing in previous delphi versions:
+
+  BINDSTATUS_COOKIE_SENT = BINDSTATUS_ACCEPTRANGES + 1;
+  BINDSTATUS_COMPACT_POLICY_RECEIVED = BINDSTATUS_COOKIE_SENT + 1;
+  BINDSTATUS_COOKIE_SUPPRESSED = BINDSTATUS_COMPACT_POLICY_RECEIVED + 1;
+  BINDSTATUS_COOKIE_STATE_UNKNOWN = BINDSTATUS_COOKIE_SUPPRESSED + 1;
+  BINDSTATUS_COOKIE_STATE_ACCEPT = BINDSTATUS_COOKIE_STATE_UNKNOWN + 1;
+  BINDSTATUS_COOKIE_STATE_REJECT = BINDSTATUS_COOKIE_STATE_ACCEPT + 1;
+  BINDSTATUS_COOKIE_STATE_PROMPT = BINDSTATUS_COOKIE_STATE_REJECT + 1;
+  BINDSTATUS_COOKIE_STATE_LEASH = BINDSTATUS_COOKIE_STATE_PROMPT + 1;
+  BINDSTATUS_COOKIE_STATE_DOWNGRADE = BINDSTATUS_COOKIE_STATE_LEASH + 1;
+  BINDSTATUS_POLICY_HREF = BINDSTATUS_COOKIE_STATE_DOWNGRADE + 1;
+  BINDSTATUS_P3P_HEADER = BINDSTATUS_POLICY_HREF + 1;
+  BINDSTATUS_SESSION_COOKIE_RECEIVED = BINDSTATUS_P3P_HEADER + 1;
+  BINDSTATUS_PERSISTENT_COOKIE_RECEIVED = BINDSTATUS_SESSION_COOKIE_RECEIVED + 1;
+
+- Added IE8 constants:
+
+  BINDSTATUS_COOKIE_DATA = BINDSTATUS_SSLUX_NAVBLOCKED + 1; //IE8
+  BINDSTATUS_SERVER_MIMETYPEAVAILABLE = BINDSTATUS_COOKIE_DATA + 1; //IE8
+  BINDSTATUS_SNIFFED_CLASSIDAVAILABLE = BINDSTATUS_SERVER_MIMETYPEAVAILABLE + 1; //IE8
+  BINDSTATUS_64BIT_PROGRESS = BINDSTATUS_SNIFFED_CLASSIDAVAILABLE + 1; //IE8
+
+* unit IEDownloadTools:
+
+- Added the new IE8 results to the function BindStatusText:
+
+ BINDSTATUS_COOKIE_DATA: Result := 'Cookie headers have been received'; //IE8  - Attention: This documentation is preliminary and is subject to chang
+ BINDSTATUS_SERVER_MIMETYPEAVAILABLE: Result := 'Server''s authoritative MIME type reported'; //IE8  - Attention: This documentation is preliminary and is subject to chang
+ BINDSTATUS_SNIFFED_CLASSIDAVAILABLE: Result := 'Class identifier (CLSID) generated from authoritative Content-Type HTTP response header'; //IE8  - Attention: This documentation is preliminary and is subject to chang
+ BINDSTATUS_64BIT_PROGRESS: Result := 'Download progress values are above the maximum 32-bit file size limit.'; //IE8  - Attention: This documentation is preliminary and is subject to chang
+
+
+
+===================================
+Version 14.65  MAJOR CHANGE
+===================================
+EwbCore Update:
+*Fixed ShowHelp and ShowMessage. (Reported by crafty)
+
+Note:
+This is a beta release using the new approach of procedures instead of functions.
+The new approach makes it easier for the programmer and leaves less room for errors.
+You will see that it's a bit harder because you will need to change your events code.
+(usually simply copy and paste it to the new event but remove the result if it's needed)
+I'm sure that in the long run, it's worth the price of the "10 minutes work" updating your code.
+Serge and I spent a lot of hours to make you, the programmer, wish to do the transfer to the new package.
+To the new package by adding new components, units and demos.
+There will be no more "back compability" in the future releases and,
+I will start from this beta version as a starting point.
+Bugs (as a beta version) may be present.
+Please inform me about anything you think will that help the others.
+The change log is long but it do not contain all the changes.
+I wrote down only the major changes.
+I want to thank Serge again for his wonderful / brilliant contribution to this release
+all over the EwbCore code and for his new components.
+
+New Components / units:
+* TEwbBehaviorController ;
+* TEwbBehaviorFactory;
+Those components were made to control Rendering Behaviors in cases like:
+  Enable you to perform custom drawing on a Web page or
+  when building a WYSIWYG editor and so on.
+More info in:
+http://msdn.microsoft.com/library/default.asp?url=/workshop/browser/behaviors/binbehaviors_node_entry.asp
+
+* THtmlListener:
+In a few words, the component "Listen" to the file
+ (Without changing/triggering it) to sink its elements.
+
+* TUrl: parse/crack/query/combine/encode/decode and a lot more.
+All the tools you need to handle the Url with the URI structure.
+
+NewFiles:
+EwbActns.pas  Not in use. (A start up for a later developing stage)
+EwbClasses.pas Conatin the TInterfacedDispatchObject for the TMSHTMLEventHandler
+EwbBehaviorsComp.pas  Contain the TBinBehavior.
+EwbCoreTools.pas : Extra tools (Like WidestringToLPOLESTR) were moved to this file.
+EwbEvents.pas and EwbEventsComp.pas contain the MSHTMLEventHandler THtmlListener
+Ewb_D5Fixes.pas : Introduce the IDispatchEx and more to D5
+IRDownloadTools.pas : Extra tools were moved to this file.
+
+TEwbCore: major changes:
+THResultEvent was replaced by TEWBNotifyEvent
+Most of the interfaces functions were replaced by procedures.
+*Added support for IAuthenticate.
+*Added function Authenticate(var hwnd: HWnd; var szUserName, szPassWord: LPWSTR): HResult
+*Added OnAuthenticate public property
+*Added support for IHostBehaviorInit.
+*Added Directive GETKEYPATH_HANDLERS.
+*Added GETKEYPATH handlers.
+*Added directive for RESEARCH_MODE.
+*Added QueryInterface for Research mode.
+*Added function PopulateNamespaceTable.
+*Added OnPopulateNSTable public property.
+*Added Doc3 public property.
+*Added getBody public property.
+*Added new unit name EwbCoreTools with all the tools inside.
+*Added a ContextMenu demo.
+*TaskAllocWideString was replaced by StringToLPOLEST.
+*Added E: Exception for Invoke procedure.
+*Changed DoQueryService.
+*Changed ShowContextMenu.
+*Changed ShowHelp.
+*Changed ShowMessage.
+*Changed DoFilterMsg.
+*Changed CtrlCharMask to DisableCtrlShortcuts and added Stored on the way.
+(I hope that the property name change will reduce the 100 mails i got with questions about it.
+*Fixed the missing OnSE.
+*Fixed CopyOptionKeyPath.
+*Changed Invoke to support exceptions.
+*Changed TranslateAccelerator.
+*Changed TranslateUrl.
+*Removed OLDVERSION_COMPATIBLE directive.
+
+TEmbeddedWB:
+* TShortCuts = class(TPersistent) was removed.
+It's no longer needed and we will use DisableCtrlShortcuts.
+*Added LoadFromWideString.
+*Added function FillForm(OleObject: Variant; FieldName: string; FieldValue: string; Value: boolean): Boolean; overload; (Code by T-W)
+*Added procedure GoBack; (To Prevent the AV)
+*Added procedure GoForward; (To Prevent the AV)
+*Added procedure Stop; (To Prevent the AV)
+*Added procedure Refresh & Refresh2; (To Prevent the AV)
+Moved the following from EmbeddedWB to EwbTools:
+*function GetSelTextHTML: WideString;
+*function GetSelText: WideString;
+*function GetSelLength: Integer;
+*function DocumentSourceText: string;
+*function DocumentSource: string;
+*function GetWordAtCursor(const X, Y: Integer): string;
+*procedure ScrollToID(ID: Integer);
+*procedure ScrollToIDEx(ID: string);
+*procedure PrintPreviewFromTemplate(const TemplateFileName: string);
+*Changed SetUserAgent;
+*Changed SetUserAgent.
+*Changed WndProc to support tab key and a fix to OnClose (Thanks Gera).
+*Changed AutoFillIEFormAndExcecute to FillFormAndExcecute;
+*Changed function FillForm(OleObject: Variant; FieldName: string; Value: string): Boolean; overload;
+*Fixed function GetCachedFileFromURL(ItemUrl: string): string;
+*Fixed FillForm.
+*Fixed LoadSettings.
+*Changed DialogBoxes.caption  to wideString.
+*Changed FormWndProc to support Vista OS.
+*Another clean up.
+
+Moved the following from EwbTools to EmbeddedWB:
+*procedure NavigateFolder(WebBrowser: TEmbeddedWB; CSIDL: Integer);
+*function NavigateToFrame(FrameList: string): IHtmlDocument2;
+*function DownloadFile(SourceFile, TargetFile: string): Boolean;
+*procedure LoadFromImage(Image: TImage);
+
+EwbTools:
+*Removed procedures that are not in use.
+*Added function GetShellFolderPath(FolderName: Widestring): string;
+*Changed GetxxxPath (now its all uses the GetShellFolderPath.
+*Added function GetCachePath: string;
+*Added some functions and procedures.
+
+Ewb_DDE
+*Removed some procedures that are not needed anymore.
+
+TEditDesigner:
+*Fixed InsertHTML (Thanks Alphax)
+
+TIEAddress:
+*Fixed GetImageIndex (Thanks T-W)
+*Added FixUrl(Text); it will auto add '/' on the end if its needed.
+*Cleaned out all the old stuf that is not in use.
+*Fixed "if Assigned(FEmbeddedWB)" to prevent AV on a component deletion.
+*Fixed message handling.
+
+TWebUpdater:.
+*Fixed VersionNumber.
+
+IEConst
+*Updated with some more IE7 constants.
+
+IEDownload:
+*Major Clean up.
+*Moved all the tools to a new unit name IEDownloadTools.
+*Fixed BeginningTransaction.
+*Fixed Authenticate.
+*Fixed GetBindInfo.
+*Fixed OnStartBinding.
+*Fixed OnStopBinding.
+*Changed event OnData to OnDataAvailable.
+*Changed event OnComplete to OnDownloadComplete.
+*Replaced the UrlComponents and crackUrl with the new TUrl unit.
+*Changed TBSCB.Initialize.
+*Changed  TBSCB.Create.
+*Replaced CreateURLMoniker with CreateURLMonikerEx.
+*Fixed GetSaveFileAs.
+*Fixed UserAgent.
+*Fixed BusyChange.
+*Fixed Go.
+
+Demos:
+All the demos were updated by the new release.
+
+Version 14.64
+===================================
+ShdocVw_Ewb:
+*Replaced the OLECMDID_ (by serge)
+
+EmbeddedWB:
+*Fixed MessageHandler (By Serge)
+*Removed EnableMessageHandler procedure and now its a boolean  published property
+  so it will be easier for an app developer to add his own MessageHandling.
+*clean up
+*Removed the DDE code to external unit name EwbDDE
+*Added a directive name {$DEFINE USE_EwbDDE}.
+Note: It will be disable in default!! so, if you need it, Enadble it.
+We have decided that it's hardly in use and that DDE can be done/use better in the application side.
+*Changed WBWndProc to WndProc as override procedure.
+*Removed all the DDE global variables to EwbDDE.
+*Removed RestorePrintValues(not needed).
+*Fixed Invalid Floating Point.
+*Changed DoFinalization.
+*Added procedure InvokeIEServerCommand(Cmd: Integer);
+ It's just an easy access to the IE Hidded commands (ID_IE_...)
+
+EwbTools:
+*Changed CheckIfInTrustedList(const Host: string; SecureSite: boolean) (by Hinnack)
+*Changed CheckIfInRestricredList(const Host: string; SecureSite: boolean)(by Hinnack)
+
+IntShCut:
+The unit was removed (no longer needed).
+
+EwbCore:  (Error report by core_duo)
+*Fixed GetElemByID
+*Fixed OpticalZoom.
+*Fixed eaAskUser : Result := S_FALSE
+*clean up
+
+TwebUpdater:
+*Fixed GetCurrAppVersion (By Kevin)
+*Fixed CheckVersionNum (By Kevin)
+*Added FormatVersionNumber (By Kevin)
+
+TIEDownload:
+*Fixed User agent string
+
+EwbAcc, IEConst, EwbTools and.. all the rest of the units:
+* Major clean up.
+
+Version 14.63
+===================================
+EmbeddedWB:
+*Fixed Use_EwbTools directive
+*Added MDI/Tab support for: Proxy, MessageHandler, Hook, PrintOptions, NavigationSound, DDE
+*Changed Destroy event by the new MDI/Tab support
+*Added/Changed a few Global variables to hold the MDI/Tab support variables
+*Added TCustomEmbeddedWB as a sub class to inherit the EwbCore events without redefign (By Serge)
+*Added getCtrlCharMask  SetCtrlCharMask  IsCtrlCharMask  for the Shortcuts (By Serge)
+*Added ScriptErrorsSuppressed property to DisableErrors to block ALL the Script Errors.
+*Changed TMessageBoxes to TDialogBoxes which is a better name. (Sorry for that.)
+*Removed the InternalErrMsg property which was not in place. The messages should be in the client side.
+*Fixed the IEMessageHandler.
+*Changed procedure RemoveUserAgent to EwbTools.
+*Changed procedure RestorePrintValues;
+*Changed Create.
+*Changed Loaded.
+*Added LoadSettings public prfocedure that you must to call in case you create the EmbedddedWB in "RunTime"
+*Changed FormWndProc
+*Removed and changed DoOnScriptError to EwbCore
+*Fixed the Use EwbTools directive and procedures places.
+ *Added procedure RefreshFrame(FrameNumber: Integer);
+
+
+EwbCore:
+*Added TCustomEmbeddedWB as a sub class to inherit the EwbCore events without redefine (By Serge)
+*Fixed ShowHelp (variables declaration)
+*Fixed ShowMessage (variables declaration)
+*Fixed TranslateUrl (variables declaration)
+*Added AnsiIndexStr (D5 Support)
+*Changed ShowContextMenu variable from IInterface to IUnknown (D5 support)
+*Changed the Script Errors handling, to block and handle all Script errors.
+*Added OnScriptError event : ErrorLine, ErrorCharacter, ErrorCode, ErrorMessage, ErrorUrl: string;
+       var ScriptErrorAction: TScriptErrorAction;
+Note: There are random errors that are not blocked by the ScriptErrorAction.
+In the EmbeddedWB, the property ScriptErrorsSuppressed will block them out.
+*Added Optical zoom (New IE7 true zoom feature)
+*Changed ScriptErrorAction to a published property
+
+EwbAcc:
+*Added support for IZoomEvents interface.
+*Fixed D5 support.
+
+IETravelLog.
+*Fixed AV because of wrong Uses (Added protections).
+*Fixed the demo.
+*Added events:
+OnGetCount = procedure(Flags: Cardinal; out Entries: Cardinal)
+OnRemoveEntry = procedure(Name: WideString; var Cancel: Boolean)
+OnTravel = procedure(Offset: Integer; var Cancel: Boolean)
+*Change component structure and improved the code.
+*Added Enabled property.
+
+EwbTools:
+*Removed all the MessageDlg's.
+
+IEDownload (All changes by Hinnack)
+*created new state ERROR
+*changed TIEDownload.Go to return TBSCB without freeing it on synchronous call for beeing able to look for the state and return values
+*added TIEDownload.Go with return file name
+*changed CoTaskMemAlloc Size and replaced MultiByeToWideChar by StringToWideChar becaus of conversion problems
+*TBSCB.BeginnTransaction changed check if AdditionalHeaders are set
+*TBSCB.BeginnTransaction changed CrLF for AdditionalHeaders
+*TBSCB.GetBindInfo change the way the entity body is created by PostData or File so one can use it even on custom verbs
+*TBSCB.GetBindInfo shorted length of PostData by 1
+*TBSCB.GetBindInfo niled unkForRelease so IE does cleanup
+*TBSCB.OnStopBinding set Error state if needed
+*TBsCB.Create Filename only set by CrackUrl if empty
+*IEDownload.UpdateUserAgent removed CrLf
+
+*Updates all the demos by the new properties.
+
+
+
+Version 14.62
+===================================
+TEmbeddedWB & EWB_Tools: MAJOR CHANGE by Serge !!!:
+EmbeddedWB.pas was split into EwbCore and new EmbeddedWB.
+So a new component name Ewb Core was added to the package.
+EwbCore is a smaller component which has all the necessary events but
+ without all the extra methods and utilities.
+*Added OLDVERSION_COMPATIBLE directive which you need to
+  Enable/Disable to use the old events structure
+*Added function DoShowContextMenu(const dwID: DWORD; const ppt: PPOINT;
+       const pcmdtReserved: IInterface): HRESULT; virtual;
+*Adde function DoFilterMsg(const lpMsg: PMSG): HRESULT; virtual;
+   for support EmbeddedWB specific handlers.
+*Change/Fix  OleDragDrop stuff.
+*Added TCoreWB.InvokeCommand (TEmbeddedWB.InvokeCMD is changed)
+*Change Zoom to interger value.
+*Fixed IDocHostUIHandler.GetOptionKeyPath
+*Fixed IDocHostUIHandler2.GetOverrideKeyPath
+*Fixed IProtectFocus
+*Fixed OnInvoke handling.
+*Added support for Tabbed Browsing  as in:
+  http://msdn.microsoft.com/library/default.asp?url=/workshop/author/dhtml/overview/tab_impact.asp
+*Removed the D4 support (Not needed anymore)
+*Extended the EmbeddedWB_RightClick.
+*Added procedure ScrollToIDEx(ID: string); // by M.Grusha
+*Added procedure SearchAndHighlight(const ACaption, APrompt: string; aText: string = '';
+         ShowInputQuery: Boolean = False); // by M.Grusha
+function SearchNextText(const Value: string; Direction: TSearchDirections = sdDown;
+         AutoSelect: Boolean = True): TSearchResults; // by Grusha M.A.
+*Added procedure PrintPreviewFromTemplate(const TemplateFileName: string); //By Grusha M.A
+*Added A demo of PrintPreviewFromTemplate (By Grusha M.A)
+*Added Client2HostWin(var CX,CY: Integer);// just call it in OnClientToHostWindow handler
+*Added property DesignMode: Boolean read FDesignMode write SetDesignMode;
+*Added property DocDesignMode: TDocDesignMode read getDocDesignMode write setDocDesignMode;
+  // two different ways to DesignMode
+*Added property DropHandlingType: TDragDropHandlingType read FDropHandlingType
+    write setDropHandlingType default ddtMS;
+*Added property KeepMSDragDrop: Boolean read FKeepMSDragDrop write FKeepMSDragDrop default True;
+*Added  TDragDropHandlingType = (
+      ddtMS, // Microsoft implementation
+      ddtMy, // TEwbCore event handlers
+      ddtCustom, // granted by user in OnGetDropTarget event handler
+      ddtNo // no drag and drop );
+  case KeepMSDragDrop of
+   False: you'll can't to switch to ddtMS after ddtNo, but ddtNo needs less resources
+   True:  opportunity for switching DropHandlingType=ddtMS is keeping, but
+       case ddtNo is more expensive
+*Added property CtrlCharMask: String // set of upper-case letters for masking Ctrl-<Char>
+*Changed TEmbeddedWB.ShortCuts: TShortCuts is kept for backcompatibility, but
+  it just controls CtrlCharMask
+*Added property OnMaskedCtrlChar: TMaskedCtrlCharEvent //for handling of masked Ctrl-<Char>
+note: Added two functions for using in custom OnShowContextMenu handler.
+*Added function IsSeTIEPopupMenus(ID: DWORD; rcm: TIEPopupMenus): Boolean;
+*Added function ShowRightClickMenu( dwID: DWORD;
+       const Target: IUnknown; const Context: IDispatch;
+       const ppt: PPOINT;
+       const EncodingSubMenu: OleVariant;
+       preprocess: TMenuPreprocess=nil): Boolean;
+note: implementation that uses last two functions:
+   1. property DisabledPopupMenus: TIEPopupMenus   analog of old RightClickMenu:TRightClickMenu  It's set, not subobject
+   2. property DisabledPopupMenuItems: TIEPopupMenuItems  the same for old RightClickShortCuts:TRightClickShortCuts
+*Added property HostCSS: string read fHostCSS write fHostCSS;
+*Added property HostNS: string read fHostNS write fHostNS;
+*Added property OnFilterPopupMenu: TMenuPreprocess.
+*Added property FloatingHosting: Boolean  if True component moves and resizes parent form
+*Added Wait2 (Requested by JimLabs);
+*Added RestorePrintValues (Requested by HypnoToad);
+
+
+EwbAcc:
+*Clean and add some IE7 stuff to EwbAcc
+*Added  function CoInternetSetFeatureEnabled(aFeature: TInternetFeature;
+    dwFlags: DWORD; fEnable: Boolean): HResult;
+*Added   function CoInternetIsFeatureEnabled(aFeature: TInternetFeature;
+    dwFlags: DWORD): HResult;
+*Added function CoInternetIsFeatureEnabledForUrl(aFeature: TInternetFeature;
+    dwFlags: DWORD; szUrl: LPCWSTR; pSecMgr: IInternetSecurityManager):HResult;
+*Added function CoInternetIsFeatureZoneElevationEnabled(
+    szFromURL, szToURL: LPCWSTR; pSecMgr: IInternetSecurityManager;
+    dwFlags: DWORD): HResult;
+
+TIEAddress:
+*Fixed Invalid FListIndex (Reported by T-W)
+*Fixed Memory leak in GetText (Reported pgh)
+*Fixed cursor position on AutoComplete (Reported by George)
+*Fixed InsertTextToList.(
+*Fixed SetTextOnLd; (tlBlank:)
+*Fixed wrong icon on load (CM_TEXTCHANGED)
+
+TIECache:
+*Fixed default values.
+*Added Enabled property.
+*Added CacheDir as a read only property.
+*Added a procedure GetCacheDir.
+*Fixed RegisterEditor.
+
+TIEDownload
+*Fixed Authenticate (Reported by ehfus)
+*Added an option to add a DownloadList (Code by Jury Gerasimov)
+*Changed AddPrefixHttp to support all common protocols. (Reported by Jury Gerasimov)
+*Fixed rangecheck error (reported by Jury Gerasimov) 
+
+TIEConst
+*Updated.
+
+FavoritesMenu:
+*Fixed AddFavorites.
+MS changed the ImportExport wizards and the old methods do not work anymore.
+*Changed Import/Export favorites to use our ImportFavorites and ExportFavorites.
+*Added the new ShowImportExportWizard.
+*Changed the Options set from XXX.. to foXXX..
+*Extended the GetImageIndex
+*Added a check for Url Shortcuts.
+*Added missing icon for UrlShortcuts.
+
+NEW: Added a component name: Favorites popup
+Based on Favorites menu.
+It has all the new FavoritesMenu features.
+
+TFavoritesListView
+*Added GetImageIndex
+*Added a check for Url Shortcuts.
+*Added missing icon for UrlShortcuts.
+*Added optional keys: VK_BACK, VK_HOME, VK_ESCAPE to change directory to one Level Up;
+*Added system default popup menu (ContextMenu)
+*Added a new unit name MenuContext to handle all components system default popup menu (ContextMenu)
+*Added PopupMenuMode property so you can choose (pmm_System, pmm_PopupMenu);
+
+
+IEParser:
+*Fixed OnDestroy event (Reported Mark999)
+
+
+Version 14.61
+===================================
+Package:
+*Changed the package structure so the *.dcu files will be stored in s sub "Lib" folder.
+*Added a linkage to some files to prevent IDE warnings.
+*Fixed all the IDE warning and hints.
+*Removed IEDownloadMgr (It's no longer needed)
+*Removed DownloadForm_U (It's no longer needed)
+*Added a new IEDownloadMgr / WebBrowser demo.
+
+TEmbeddedWB & EWB_Tools:
+*MAJOR code cleanup and then, Re-orgenized the code by interfaces.
+*Moved types to EwbAcc.
+*Fixed MessageHandler Ctrl+C and so on.. (Reported by George)
+*Fixed WM_SETFOCUS (Not needed) (Reported by gorepj)
+*Fixed onLoad proxy settings.
+*Fixed Zoom on DesignTime
+*Fixed possible MemLeak In InvokeCMD (EwbTools (By Daniel)
+*Fixed Modified recall (reported by octweak)
+*Added function GetSelLength: Integer;
+*Added function GetSelText: WideString;
+*Added function GetSelTextHTML: WideString;
+*Added function DocumentSource: string; (By Bitmaker)
+*Added function DocumentSourceText: string; (By Bitmaker)
+*Added procedure ScrollToID(ID: Integer); (by M.Grusha)
+*Added function GetWordAtCursor(const X, Y: Integer): string; (By M.Grusha)
+*Added function LoadFromString(const S: string): HRESULT; (By M.Grusha)
+*Added function LoadFromFile(const FileName: string): HRESULT; (By M.Grusha)
+*Added public property SelLength: Integer (By M.Grusha)
+*Added public property SelText: WideString (By M.Grusha)
+*Added public property SelTextHTML: WideString (By M.Grusha)
+*Added an overloaded SetProxy procedure that will connect using UserName and password
+I did not test it (I don't have proxy server).
+*Changed ProxySettings Server property name to Address.
+*Changed property OnShowHelp to OnShowHelpRequest to fix the hidded property (Borland Bug-D2006).
+*Changed the Disable MessageHandler OnDestroy (MDI cases)
+
+TEditDesigner:
+*Fixed toString (Reported by octweak)
+*Fixed OnError (Reported by octweak)
+*Added {$DEFINE USE_EXTRAS} directive to disable the Extra events.
+*Added some basic tools to the Extras like:
+*function SaveToFile(FileName: WideString): HResult;
+*function SaveCompleted(FileName: WideString): HResult;
+*function LoadFromFile(FileName: WideString): HResult;
+*function IsDirty: HResult;
+*function GetHTMLDoc2FromWB: IHTMLDocument2;
+*function RGBToBGR(RGB: TColor): Integer;
+*function ColorStr(RGB: TColor): string;
+*procedure InsertHyperlink;
+*procedure InsertImage;
+*procedure InsertRadioButton;
+*procedure SetFontBold;
+*procedure SetFontUnderline;
+*procedure SetFontItalic;
+*procedure ExecCommand(Command: Widestring; ShowUI: Boolean; Value: Integer);
+
+IEConst and Ewb_Acc:
+*Another re-organization and cleaning.
+
+Mshtml_Ewb:
+*Added Constans for dwID  OnShowContextMenu (By M.Grusha)
+
+NEW: Added UI-Less parser component to the pack'.
+*Added property Enabled
+*Added event property OnInvoke
+*Changed function Get(URL: PWidechar): IHTMLELEMENTCollection;
+*Changed procedure GetImageList(IC: IHtmlElementCollection; ImageList: TStrings);
+*Changed procedure GetAnchorList(Ic: IHTMLElementCollection; Anchorlist: TStrings); overload;
+*Added procedure GetAnchorList(IC: IHTMLElementCollection; Anchorlist, LinkList: TStrings); overload;
+*Added a bitmap to the EWB.dcr
+*Added a UI-Less demo.
+
+Download Manager Demo (WebBrowser) Code by Mathias:
+*Added close on download complete
+*Fixed cancel status on multiple downloads
+*Changed formating functions (TimeToStr, etc.) in iedownload.pas to be compatible with D6 and lower
+*Changed window style so that window is visible on the taskbar
+*Did some clean ups of unused variables
+
+IEDownload MAJOR CHANGE: Code by Mathias:
+*Fixed TBSCB.OnProgress to use thread-safe form of formating functions (TimeToStr, etc.). Maybe does not compile with D5.
+*Fixed speed and remaining time calculation
+*Fixed speed calculation on resume
+*Fixed a bug where RegisterBindStatusCallback failed or no previous BindStatusCallback was found
+*Fixed a bug on downloading temporary files for opening later on
+*Fixed TBSCB.GetBindResult
+*Fixed TBSCB.OnStopBinding; This method is always called, whether the bind operation succeeded, failed, or was aborted by a client. File or stream must be closed here.
+*Fixed Binding reference handling
+*Fixed TBSCB.OnResponse abort behaviour
+*Fixed TBSCB.Destroy (assigned(object) checks for nil, so Object <> nil is duplicate)
+*Fixed the demo to show multiple downloads in a list and cancels them individually via context menu
+*Changed remaining time format to standard format because milliseconds are not really necessary, but some downloads can take hours
+*Did some clean up.
+
+
+
+Version 14.60  MAJOR FIXES
+===================================
+TEmbeddedWB & EWB_Tools
+*Fixed MessageHander by octweak (ComponentState)
+*Fixed MessageHander by George.(VK_DELETE)
+
+TFavoritesMenu:
+*Added default values.
+*Reorgenized the code.
+*Added Enabled property
+*Formated the code.
+*Reduced uses claud.
+*Added OnError event & property (ErrorCode & ErrMessage)
+*Added OnError event in all the possible cases.
+*Fixed a mem leak.
+*Replaced the ShowMessage with the OnError event.
+*Changed AddFavorite by password request.
+
+Version 14.59
+===================================
+TEmbeddedWB & EWB_Tools
+*Added support for IDownloadManager by Mathias
+*Added property OnFileDownload by Mathias
+(So you can control your file downloads within the EmbeddedWB)
+More info on MS:
+http://msdn.microsoft.com/workshop/browser/ext/reference/ifaces/idownloadmanager/idownloadmanager.asp
+*Finished support for INewWindowManager:EvaluateNewWindow Method
+Now you have all the tools to build your own popup blocker.
+More info on MS:
+http://msdn.microsoft.com/library/default.asp?url=/library/en-us/shellcc/platform/shell/reference/ifaces/inewwindowmanager/evaluatenewwindow.asp
+*Added function EncodeUrl(const InputStr: string; const bQueryStr: Boolean): string;
+*Added function DecodeUrl(const InputStr: string): string;
+*Added function IsValidProtocol(const URL: string): Boolean;
+*Enhanced the open dialog to support the common file types.
+*Added SaveDialogEx which allow the user to save the page in different formats.
+*Added procedure SetFocusToParent to prevent EmbeddedWB "TakeOver" the focus. (Reported by George)
+*Added an overload function LoadFromStrings(const AStrings: TStrings; AddHtmlTags: Boolean)
+ so you can load text without the html tags and the component will auto load it.
+*Fixed CopyOptionKeyPath (Mem Leak).
+*Fixed GetDropTarget to enable better Drag and drop support (Reported by George).
+*Fixed/Changed TEmbeddedWB_Tabs_Demo so it will update by the Active EmbeddedWB
+*Changed TranslateAccelerator  (Code by octweak)
+*Fixed IEMessageHandler "enter key" IsChild(GetParent(HWND), HWND) (reported by George)
+*Fixed MemLeak and improved in CopyOptionKeyPath. (Reported by Harry)
+
+TWebUpdater:
+*Fixed error in D5 (FormatSettings)
+
+TEditHost
+*Fixed warning in D5 (SnapRect).
+
+TExport Favorites:
+*Fixed Warning in D5 (System).
+
+TGUID:
+*Changed MSHTML to MSHTML_D5_D7.
+
+TIECache:
+*Fixed GetEntryInfo(Url: string): DWORD; (Code by Mathias)
+
+TEditDesigner:
+*Added procedure SetDesignModeOff;
+*Added procedure SetDesignModeOn;
+*Added function ConnectDesigner: integer;
+*Added function RemoveDesigner: integer;
+*Added procedure InsertHTML(stHTML: string);
+*Added function GetPageProperties: TStrings;
+*Added constructor Create(AOwner: TComponent); override;
+*Added destructor Destroy; override;
+*Added procedure BeforeDestruction.
+*Added a linkage to the EmbeddedWB.
+*Added a property & event Enable: Boolean
+*Added a property & event EmbeddedWB
+*Added a property & event OnPreDrag
+*Added a property & event OnError
+*Added a property & event OnInnerText
+*Added a property & event OnInnerHtml
+*Added a property & event OnKeyPress
+*Added a property & event OnKeyState
+*Added a property & event OnMousePosition
+*Added a property & event OnMouseButton
+*Added a property & event OnEvtDispId
+*Added a property & event OnSnapRect
+*Added a property & event OnType_
+*Added a property & event OnToString
+*Added a property & event OnTagName
+*Fixed the code all over the unit to prevent programmer’s errors.
+*Added support for IHTMLEditHost.
+More info in:
+http://msdn.microsoft.com/library/default.asp?url=/workshop/browser/mshtml/reference/ifaces/edithost/ihtmledithost.asp
+*Added support for IHTMLEditHost2.
+More info in:
+http://msdn.microsoft.com/library/default.asp?url=/workshop/browser/mshtml/reference/ifaces/edithost2/ihtmledithost2.asp
+*Added a TEditDesigner demo.
+
+MSHTML_D5_D7 was renamed to Mstml_Ewb
+I did it in this stage because of my future plans for this file.
+So, please replace any MSHTML_D5_D7 with Mstml_Ewb in your uses cloud. Sorry.
+
+TEditHost:
+*Added support for IHTMLEditHost2.
+More info in:
+http://msdn.microsoft.com/library/default.asp?url=/workshop/browser/mshtml/reference/ifaces/edithost2/ihtmledithost2.asp
+*Added property & event OnPreDrag.
+
+TIEAddress:
+*Fixed MemLeak and improved in TEnumString.Next (Reported by Harry)
+
+
+
+Version 14.58
+===================================
+TEmbeddedWB & EWB_Tools
+*Fixed LoadFromStream (Reported by gps).
+*Fixed LoadFromStrings (Reported by gps).
+*Fixed AssignEmptyDocument
+*Fixed VerifyVersionInfo (Fix by Mathias Walter)
+*Fixed warning in D5 (ShowContextMenu)
+*Fixed EnableMessageHandler (Enter Key) (Reported by Julius Alba)
+*Fixed SDI Demo (Reported by Mathias)
+*Added support for parent change without a page content lost. (Code by jls)
+*Replaced the MSHTML with the MSHTL_D5_D7
+* NEW: In the EmbeddedWB source code I added a directive to use/ not use EWB_Tools
+To remove the EwbTools, just add a dot like "{.$DEFINE...USE_EwbTools" or something.
+And, re-compile the package.
+I'm sure there will be requests to move a procedure from one file to another, but, its working.
+Its not fully tested so, changes will come.
+BTW, It was an easy task thanks to smot who did a wonderful job ordering the code a few months ago.
+
+Code changes by Serge Volosheniuk:
+*Added initial support for INewWindowManager:EvaluateNewWindow Method
+(I was not in the mood to finish trigger the event and I'm not sure I will)
+More info on MS:
+http://msdn.microsoft.com/library/default.asp?url=/library/en-us/shellcc/platform/shell/reference/ifaces/inewwindowmanager/evaluatenewwindow.asp
+*Added a public integer name GlobalModelessCounter (lock-flag for decision if calling the dialogs is safe.)
+*Added property OptionKeyPath: String
+*Added property OverrideOptionKeyPath.
+
+TWebUpdater:
+*Fixed GetXmlTag('File') (Reported by endemyon)
+*Fixed Error on localized Machines (Code by endemyon)
+*Fixed WebUpdater Demo. (Reported by endemyon)
+
+TRichEditWb:
+Fixed the missing ";"
+
+TFavoritesMenu:
+*Added an overload procedure CreateMenu(mi : TMenuItem); (code by password)
+
+THistoryMenu:
+*Added an overload procedure CreateMenu(mi : TMenuItem); (code by password)
+
+MSHTML_D5_D7:
+*Changed the IMarkupPointer (code by octweak)
+
+TGuid:
+*Added demo tools.
+
+
+Version 14.57
+===================================
+TIEAddress:
+*Reduced flickering by changing messages processing order.
+*Fixed missing first letter (SendMessage)
+*Added better support to native languages (WideString and AnsiString)
+*Removed the auto add http prefix (It conflict with search)
+*Removed the Default protocol (It conflict with search)
+*Reordered the code.
+*Changes GUI to gsComboBox and gsThemes.
+*Fixed GetCacheFolder (Reported by gorepj)
+*Changed OnGetAppIcon so you can get the icon for external uses.
+*Changed OnGetFavicon so you can get the icon for external uses.
+*Added OnGetIcon event so you can get the hIcon for external uses.
+Changed the Auto complete feature (Rewrote it from scratch) by the new MS updates:
+ acAutoSuggest, acAutoAppend, acFileSystem, acUrlHistory,acUrlMRU, acUrlAll, acUseTab
+ more info on MS:
+ http://msdn.microsoft.com/library/default.asp?url=/library/en-us/shellcc/platform/Shell/reference/shlwapi/version/shautocomplete.asp
+*Added support for IAutoComplete2
+Avaliable features:
+Source = (acsList, acsHistory, acsMRU, acsShell);
+Option = (acoNone, acoAutoSuggest, acoAutoAppend, acoSearch, acoFilterPrefix,
+ acoUseTab, acoUpDownKeyDropList, acoRtlReading, acoWordFilter, acoNoPrefixFiltering);
+ more info on MS:
+http://msdn.microsoft.com/library/default.asp?url=/library/en-us/shellcc/platform/shell/reference/enums/autocompleteoptions.asp
+ *Added a property AutoCompleteVersion to set Autocomplete1 or AutoComplete2
+(It will auto check the dll version and if the dll version is  too old,
+ it will auto set to the old version.
+*Updated the demo with the above
+
+TEmbeddedWB:
+*Added import a Security Certificate file. (by Ray)
+*Fixed  m_bResizing := not m_bWinXPSP2;  (reported by copper)
+*Fixed GetSSLStatus(EWB_Tools) (reported by geropj)
+*Fixed  ShowOrganizeFavorites. (reported by geropj)
+*Reduced Uses cloud.
+*Removed HideBorder and Hide scrollbars properties(They are no longer needed).
+*Added support for IDropTarget.
+Its targets are:
+*Determining the effect of the drop on the target application.
+*Incorporating any valid dropped data when the drop occurs.
+*Communicating target feedback to the source so the source application can provide appropriate visual feedback such as setting the cursor.
+*Implementing drag scrolling.
+*Registering and revoking its application windows as drop targets.
+*Added new events : OnDragEnter, OnDragOver, OnDragLeave, OnDrop.
+*Added a Boolean value "EnableDragAndDrop"
+*Added a DragAndDrop Demo.
+
+IEConst
+Updated with New const.
+
+TFileAssociate:
+*Fixed missing parameter. (reported by Cstuffer)
+
+TIEDownload:
+*Fixed BINDSTATUS code D5 support. (reported by bernie)
+
+Added NEW component name LinkLabel.
+I use in every application I create and I could not find a freeware
+ that does all the functions the LinkLabel does.
+*It can launch browser (Your own browser, not neccesary IE),
+mail program, Any other application you want and even with command prefix.
+*It changes the font OnMouseMove
+*It can change to 3 different colors onClick event.
+*It has a build in popup menu for each type of label.
+*Highlight Text.
+*3D text.
+*Running text.
+*Flickering text.
+*Buildin event that can retrive errors as a string.
+*Images for each label (ImageList)
+and so on..
+Added a demo for the LinkLabel.
+
+
+Version 14.56
+===================================
+NOTE:
+You must remove from your application / project cloud the ShDocVw and IEUtils.
+ShDocVw should be replaced with SHDocVw_EWB!!!
+They are no longer in use.
+
+Package changes:
+*Reduced the package requires cloud.
+*Fixed all Delphi hint and warnings in ALL the units in the package.
+*Split IEConst file to 2 files: IEConst and EwbAcc.
+IEConst hold's all and only Constants.
+EwbAcc will hold's all and only the accessories with their functions.
+*I edited / formatted both files for easy navigating.
+*Formatted all the files in the project.
+*Added EwbReg file to manage component registration.
+*Added EwbEditors file that contain the components PropertyEditor.
+*Added PropertyEditors to all the components as listed:
+1. Added Components RightClickMenu menu items: Address and version.
+2. Added Components Double-Click event that will auto navigate to support site.
+3. Added SaveAs BuildIn Dialog.
+4. Added OpenAs BuildIn Dialog.
+5. Added BrowseForFolder BuildIn Dialog.
+*Removed IEUtils (No longer needed).
+
+
+IEDownload changes:
+*Added new strings to the OnProgress Event.
+ElapsedTime, Speed, RemainingTime, RemainingSize, Status:
+You will need to copy your OnProgress code and paste it back into the new event!
+*Added busy Boolean property. (Asked by Haka)
+*Added OnBusyStateChange event (So you can use it like CommandStateChange in EmbeddedWB.
+*Added OnStatusText event (So you can hook the Status text as a string).
+*Added OnErrorText event (So you can hook the Error text as a string).
+*Added OnRespondText event (So you can hook the Respond text as a string).
+*Added / Fixed URL property.
+*Added SaveFileAs WideString property which holds the downloaded file name and path.
+*Added auto SaveAs dialog to the SaveFileAs property.
+*Added auto adding of path to downloaded file name.
+*Added default values to the downloaded file name and path.
+*Added PropertyEditor to the downloaded file name (Auto SaveAs Dialog).
+*Added default protocol that will be added to an address like borland.com to prevent Moniker address errors.
+*Added support to Security Problem Errors. (Reported by Alan Grace)
+*Added Component default values.
+*Added DownloadDir to hold the Download folder.
+Adde Auto BrowseForFolder to Download Dir.
+*Added DownloadToFile and DownloadToStream so it will be more "User Friendly"
+*Added FormatSize to show the downloaded file size in: b,kb, mb.
+*Added FormatTime to show the elapsed/remaining time in: h,m, s, ms.
+*Added IsValidUrl to verify the destination.
+*Fixed all the procedures to support WideString native languages.
+*Fixed the User Agent bug. (Reported by Takis456)
+*Fixed AdditionalHeaders bug. (Reported by Takis456)
+*Fixed the OnProgress Zero Div' bug. (Reported by shopen)
+*Fixed some lower case mistakes.
+*Fixed Problems with URLMon.dll since the "MS06-021" patch. (Reported by Brad)
+*Fixed Access violation at address 77274411 in module 'URLMON.DLL". (Reported by Haka)
+*Fixed OnProgress Elapsed Time wrong values.
+*Fixed OnProgress Elapsed Time wrong values.
+*Fixed CoTaskMemAlloc (Free in case of null).
+*Fixed GlobalFree(FglobalData);
+*Fixed Total of 5 memory leaks.
+*Extended ErrorText codes. (Thanks Brad)
+*Extended BindStatusText codes. (Thanks Brad)
+*Extended ResponseCodeText codes. (Thanks Brad)
+*Extended the Authenticate to report errors.
+*Formatted the code.
+*Added AutoLoadProxy (Default:=false) to prevent removing the proxy on destroy in Mdi cases
+*Changed Set proxy to public so it will be accessible within your application.
+*Removed the Get/Set User agent and replaced it with a new method.
+*Updated the IEDownload demo with a ListView, Progressbar, and EmbeddedWB and so on so you can see how it’s done.
+
+TextIeParser changes:
+*Fixed property html to WideString to improve Unicode support.
+*Fixed Execute "if SUCCEEDED(HR)..." (It was false what so ever..)
+*Fixed LowerCases all over the code.
+*Fixed Releasing ConnectionPoint;
+*Fixed 5 memory Leaks (Co...)
+*Reduced its cloud.
+*Removed old code and const.
+*Updated Download Options By MS updates.
+*Added TMessages as a TPersistant.
+*Added boolean valus to show StatusText (Start/Done).
+*Added boolean valus to show Error Messages DLG.
+*Added MessageDlg for common errors (Which are triggered by ShowErrorMessages).
+*Added Status Text.
+*Added OnStatusText Event.
+*Added Busy State.
+*Added OnBusyStateChange event.
+*Added LocalFileName. (To parse local html files).
+(On Go without reffering to Url IEParse will auto try to load from local res'.)
+*Added Auto dialog to LocalFileName.
+*Added Destroy event to free what ever..
+*Added Loaded event to tweak the busy state.
+*Added SaveLogAs string value so you can save in a log all the parse/ page datails.
+*Added a SaveLog boolean value so you can Enable/Disable the saving.
+*Added process time.
+*Added FormatTickToTime to show process time.
+*Added  StrToCase to make the parsing understandable (Replaced the if else..else..).
+*Renamed DownloadControlOption to a understandalbe boolean names..
+(I am sorry but I can not handle 100 letters a week  with requests to help users
+   understant what these values do)
+You should ignore the error on a project first time load.
+If you use the values in your code then rename them.
+*Renamed Excute/Parse to Go.
+*Renamed the component to TIEParser !!!
+*Added a new IEParser demo so you can see how easy it is.
+
+TMapiMail changes:
+*TMapiMail was renamed to TEwb_MapiMail so ppl can use both EWB pack and Mike's pack (Reported by yocko)
+
+TIEAddress Changes:
+*Added a GUI property (gsOld and gsNew) so you can set old GUI or new GUI. (Reported by Bichuete)
+
+TEmbeddedWB:
+*Fixed About property (reported by hibbidiji).
+*Improved GoNoHistory so the address will not be registered in the history (Reported by Ray)
+*Added the missing Icon in the dcr file (Reported by Yocko).
+*Added AutoLoadProxy (Default:=false) to prevent removing the proxy on destroy in Mdi cases
+*Changed Set proxy to public so it will be accessible within your application.
+*Renamed DownloadControlOption and UserInterfaceOtions to a understandalbe boolean names.
+(I am sorry but I can not handle 100 letters a week  with requests to help users
+   understant what these values do)
+You should ignore the error on a project first time load.
+If you use the values in your code then just rename them
+(I left the old code marked so you can see how it should be).
+*Added a TEmbeddedWB_Elements_Under_Mouse_Demo.
+*Changed the EmbeddedWB icon by IE7 .
+*Fixed ViewPageLinks (Reported by tmedia).
+*Fixed ScriptsError wrong boolean value (reported by emanuele)
+
+IEConst
+*Updated by the new const.
+
+Browse4Folder:
+I needed an extended BrowseForFolder for one of other project so I changed
+the unit to a true component on way.
+I extended it by XP SP2 updated.
+*Added InitialDir
+*Added all the possible options like EditBox Create new folder and so on.
+*Added a Root selector (If InitialDir is empty)
+*Added Show title boolean value.
+*Added Title string.
+The component act like any dialog. (Create, Exexute..)
+*Added Execute 2 that will return the string and not a boolean value
+*Added a component DoubleClick PropertyEditor to lunch itself.
+
+New Component:
+TFileExtAssociate:
+This component allow the programmer when creating applications,
+ to associate file extension (or even your own private extension) with the
+ application through Windows.
+*Added an Extensions stringList so you can register several file type to the same application
+*Added Execute function that does it all automatically.
+*Added more Execute override procedures for manual execute.
+  function Exceute(Extensions: Tstrings; AppExeName: string; AppIco: TIcon): Boolean; overload;
+*Added ApplicationTitle property
+*Added ApplicationIcon property so you can load other icon then your application.
+*Added FindExeByExtension function so you can find:
+ 1. what is the default application associated with the specific file type.
+ 2. If the registration for your application to the file type was a success.
+
+
+
+
+Version 14.55 Beta Release new IE7
+==============================
+TEmbeddedWB:
+===========MAJOR CHANGE=======:
+Added new file name ShDocVw_EWB.
+The EmbeddedWB now use TEWB which is TWebBrowser based on the new IE7 
+It has all the new events like OnNewWindow3 and so on.
+*Changed Proxy procedure (Thanks mladen).
+
+TIEAddress:
+*Added Modified property
+*Added Hint color.
+*Added auto navigate on item selected property (In the list view)
+*Changed unit structure to a bit faster.
+*Fixed Override method %s.%s should match case of ancestor hints. 
+
+TIEDownload:
+*Fixed OnProgress Division by zero.
+*Fixed Winded hints.(Integer to cardinal)
+*Fixed Override method %s.%s should match case of ancestor hints.
+*Changed User agent so you can set your own.
+*Added Busy property.
+*Added proxy support.
+*Fixed some lower case mistakes.
+
+
+Version 14.54
+=====================
+TIEAddress:
+*Favicon is set to false on default.
+ (We will change it back after we will find a different approach (Faster)
+*Improved the code all over the unit to make it work faster,
+ Use less memory and to reduce flickering)
+*cleaned up all the unneeded code.
+*Added new GUI.
+*Added button colors.
+*Added pressed button colors.
+*Added border colors.
+*Added arrow colors.
+*Added Themes.
+*Added some more properties to disable/Enable events.
+*Fixed Icon validation.
+*Fixed AppIcon loading.
+*Fixed Image Indexing.
+
+TIEDownloadMgr was added again. (Thanks Mathias)  
+
+
+
+Version 14.53
+=====================
+TEmbeddedWB:
+*Fixed duplicated events.(Thanks Carl)
+*Restored DDE code.
+*Changed DesignMode function (Remove unneeded result)
+*Changed Modified property (To be public but not published).
+*Removed DisableClickSound Boolean (It was replaced and now, it’s no longer needed.)
+*Updated SearchString function.
+*Rename SearchThisText name to SearchText.
+*Changed default The DLCTL_Silent to false.
+*Added a property name InternalErrMsg into the MssagesBoxes property,
+ Which can hide internal error messages (Like writing into the registry errors)
+*Changed SearchAndHighlight procedure so the user can select using InputQuery or its own.
+*Another code cleaning and moving from EmbeddedWB to EWBTools. (By smot)
+
+
+TIEAddress: *** MAJOR CHANGES ***
+*Added Favicons to the address bar.
+*Added ShowFavicon property to Show/Hide favicons.
+*Added Application Icon to the address bar and
+ to the Dropdown that will be shown on html kind files.
+*Added ShowAddIcon property to Show/Hide Application Icon.
+*Added Icons support to common file extension like zip, rar, gif,
+ Jpeg, txt, doc, and so on...  to the address bar and into the Dropdown.
+*Added Auto complete "http://" prefix.
+*Added CheckOnlineStatus to prevent a try to grab the favicon when app is offline.
+*Added IsValidUrl to prevent an error while grabbing the favicon.
+*Added better support fot WideChars in the address bar.
+*Added procedure SaveTofile (To export the url list).
+*Added procedure LoadFromfile (To import the url list).
+*Added ClearList procedure.
+*Added new options/results to "GetSpecialFolderNo" By MS new const.
+*Added DefaultProtocol value ('http').
+*Added function GetCacheFolder (To save the favicon).
+*Added a background color to secure site ('https' only) (Auto change on and off).
+*Added a ChangeBGOnSecure property to enable/disable change Background color
+*Added a color property to select the secure site Background color
+*Added procedure CheckSecureSite;
+*Added an option to show the site LocationName as a ToolTip (hint) in the address bar.
+*Added a property ShowSiteToolTip to enable/disable the ToolTip.
+*Added a TextAfterNav property. This option lets you choose to show between
+ LocationUrl or LocationName on navigation complete.
+*Added UpdateTextAfterNav property to enable/disable the TextAfterNav update.
+*Added a few private procedures for easy coding.
+*Rewrote/fixed/Updated 90% of the code.
+*Removed the Url property (no longer needed).
+*Removed the SetUrl and so on procedures that are not needed anymore.
+*Renamed UserDefignText to TextOnShow.
+*Added new events so you can control the actions:
+GetAppIcon(Sender: TObject; var Cancel: Boolean);
+GetFavicon(Sender: TObject; Favicon, SiteUrl: string; var Cancel: Boolean);
+UpdateRegistry(Sender: TObject; Url: string; var Cancel: Boolean);
+UpdateText(Sender: TObject; OldUrl, NewUrl: string; var Cancel: Boolean);
+
+*Fixed Default protocol
+(Now it will update the address with the protocol on run time).
+*Fixed Free icons from the memory.
+*Fixed duplicate addresses in the list.
+*Fixed duplicate addresses in the registry.
+*Fixed Create
+*Fixed Loaded
+*Fixed...  (I can't write no more :)
+---IMPORTANT NOTES: -----------------------------------------------------
+1. *Changed AddToList from private to public
+    It’s needed when pressing the Go button AND NOT the Enter key or DblClk.
+    (Add the address to the registry database).
+    So, on your Go button click event add "IEAddress1.AddToList;"
+2. Show favicons takes time to download the favicon.
+   I used UrlMoniker for the operation. If you know a better way, you are invited to mail me.
+3. This is beta release on the new IEAddress So...
+------------------------------------------------------------------------
+
+Version 14.52
+=====================
+NEWS:
+1. Thomas Stutz (Smot) has joined our developing team.
+We welcome him with all the best regards.
+2. This release has MAJOR updates.
+Major part of the code was updated/moved/cleaned.
+This is a BETA version until we will be sure, all is functioning OK.
+
+
+TEmbeddedWB:
+*Added support for all IE7 User interface options (Properties & events).
+*Added Updated support for "Frames" script errors.
+(Now you can capture the error window, replace its caption/icon, /close it, hide it or what ever.)
+*Fixed PrintOption bug (that made Delphi crash)
+*Rewrote Loaded.
+*Rewrote Create.
+*Rewrote Destroy.
+*Added Restore to TextSize on Destroy.
+*Added Modified property. (Modified=true if the loaded doc was changed)
+*Added procedure LoadFromImage(Image: TImage) (Without any dialog);
+*Added procedure GoNoHistory (Yes, No History Record.)
+*Added function function SearchString(const strText: string): Boolean;  
+*Rewrote the Exec procedure based on MS new code.
+ Now you can capture the error window, replace it's caption / icon close it hide it, or what ever.
+This is stage 2. There is more to come about this issue.
+*Another change in defaults values.
+(Navigate to URL without adding entry to the History at all!!)
+*Changed SendPageInMailAsAttachment (so it will be more flexible.) (Smot)
+*function GetRunTimeMeasure: TMeasure(Smot);
+*Changed function AssignDocument name to AssignEmptyDocument.
+*Changed DisableSound name to DisableNavSound (Smot)
+Another major code cleaning by Smot:
+*Moved about 100 functions/procedures to EWBTools.pas,
+*Cleaned redundant units in uses-clause (Smot)
+*Grouped/sorted the functions into categories (Smot)
+1. Begin appears on a separate line
+2. Capitalization Convention of WIN API Types (e.g HRESULT) (Smot)
+3. Class members: Uppercase F (Smot)
+4. Uppercase: Result, False, True, Self, Handle, OleVariant, Boolean, Integer, Assigned, etc. (Smot).
+
+
+TIEAddress:
+*Moved GetTypedURLs in on loaded event.(Thanks Carl)
+*Added a term in GetTypedURLs to avoid error if Items is empty or nil (Thanks Carl)
+
+TExportFavorites:
+*Fixed NavigationPath.
+
+IEConst:
+*Added New Constants.
+
+Demos:
+Fixed the EmbeddedWB demo (status bar error).
+
+Version 14.51
+=====================
+*Fixed Textsize OnDestroy.
+45 functions/ procedures were separated from EmbeddedWB to a new file name EWBTools.
+All these functions/ procedures are visible from the main EmbeddedWB.
+so, you will see no different.
+All the cleaning moving and so on was done by Smot.
+We thank him a lot for helping me doing this task.
+It sure needs tests, but it looks like all is working OK.
+Our goal is to clean out the component and to separate all the extras leaving only the events.
+
+Version 14.5
+=====================
+TEmbeddedWB:
+*Fixed memory leaks.
+*Fixed events recall. (Thanks cstuffer) 
+*Fixed Exec procedure.
+
+TWebUpdater:
+*Fixed format and spelling (Thanks Smot).
+
+
+Version 14.4
+=====================
+TEmbeddedWB:
+*Added Proxy support (Thanks KKKas)
+The proxy support is auto used in run time (add proxy Onload and remove on destroy)
+To add proxy: Enter proxy name and port.
+To remove proxy: proxy name will be empty string ('').
+The proxy settings effect only the TEmbeddedWB application.
+*Removed unneeded files.
+*MAJOR Bugs fix (Thanks KKKas for making me notice).
+*Added Text size default value.  
+
+Version 14.3
+=============
+TEmbeddedWB:
+*ANOTHER Fix OF Errors in remote script (Not final).
+*Fixed FrameCount.
+*Fixed TranslateAccelerator.
+*Added New "MessagesBoxes" TPersistent.
+*Added DisableAll boolean property to disable all messages.
+*Moved ReplaceCaption into MessagesBoxes.ReplaceCaption .
+*Added NewCaption string (Hold the new caption. If it’s empty, it will hold the application title)
+*ReplaceCaption is now set to true as default.
+*Added ReplaceIcon as a boolean (true as default).
+*Added New "VisualEffects" TPersistent.
+*Added DisableSounds Boolean property into VisualEffects.
+*Added TextSize (Zoom) (Integer value from 0 to 4) property into VisualEffects;
+*Added HideSetup Boolean value to hide "page setup" box.
+
+*Added 3 demos do demonstrate OnNewWindow:
+1. SDI Browser.
+2. MDI Browser.
+3. Tabbed Browser.
+Note: I made the Tabbed browser a bit complicated to show how's everything can be build in run time.(I had a lot of requests to show how it's done).
+
+
+TIEAddress:
+*Fixed SetAbout.
+*Fixed again the old flickering bug(when using some controls that I never used before :)
+
+*Fixed IECache demo
+*Fixed IETravellog demo
+*Cleaned all the other demos
+
+Version 14.2
+====================
+TIEAddress:
+*Replaced Navigate with Go to prevent users errors.(Thanks Smot)
+*Fixed HasbBrder property.
+*Fixed HasDropDown property.
+*Fixed if Assigned (FEmbeddedWB) (Thanks Snail).
+*Upgraded the TIEAddress Demo (Thanks Smot).
+*Added default value to TextOnLoad (tlIEHomePage).
+
+
+TEmbeddedWB:
+*Added if(Trim(_URL) <> '')then to "Go" procedure.
+This line will be no longer needed in your forms.(If you use "Go" procedure.)
+
+Version14.1
+====================
+TIEAddress:
+*Added   TTextOnLoad = (tlIELastVisited, tlIEHomePage, tlBlank, tlUserDefine);
+tlIELastVisited: IE last visited page.
+tlIEHomePage: IE Home Page .
+tlBlank: About: Blank page.
+tlUserDefine: User Define page.
+*Added a property so the user can enter preferred page address.
+*Added a procedure to navigate to On Load page.
+*Added TIEAddress Demo.
+
+TEmbeddedWB:
+*Fixed the ShowContextMenu - RESULT: = S_OK (thanks Ray)
+*Fixed CloseKey position (Thanks Smot)
+*Added procedure PrintPreviewExtended (Maximized) (thanks Smot)
+I do not like this feature because it is slower.
+So, I do not remove the old method and both methods are in.
+*Update the print demo with the above.
+
+IEConst:
+*Updated with new constants.
+
+Version14
+====================
+TEmbeddedWB (Major Changes):
+*Added PrintOption.Enabled property to increase speed.
+*Tweaked the PrintOptions code to prevent Runtime error.
+*Added Doc state check to the PrintOptions to prevent errors.
+*Added Wait procedure (While ReadyState...) to clean up the component.
+*The Wait procedure was added to other critical procedures to prevent programmers/Users errors.
+*Added Shortcuts as a TPersistent.
+*Added 5 properties to disable the shortcuts (Ctrl+N and so on).
+*Added RightClickMenu as a TPersistent.
+*Added 11 RightClickMenu properties to disable the different menu's (doc menu, image menu..).
+*Added RightClickMenu items (Shortcuts) as a TPersistent.
+*Added 17 RightClickMenu items properties to disable the shortcuts items (Thanks Ray for the idea).
+*Added about property.
+*Added Default values to the onCreate.
+*Added DisableErrors as a TPersistent.
+*Added 1 property to disable the ScriptErrors.
+*Moved the EnableDDE to DisableErrors.
+*Moved the ftExceptions to DisableErrors.
+
+*Added a printOptions Demo.
+*Added a RightClickMenus and shortcuts Demo.
+
+TImportFavorites:
+*Fixed to add multi languages support (Favorites folder name).
+
+TExportFavorites:
+*Fixed to add multi languages support (Favorites folder name).
+
+TIeAddress (Major Changes):
+*Added basic support for flat view (Thanks Smot). 
+*Added about property.
+*Added Default values to the onCreate.
+*Added AutoDblClkNavigaion property.
+*Added AutoNavigateOnDblClk property.
+*Added AutoNavigateOnEnterKey property.
+*Code Cleanup (Thanks Smot).
+*Fixed the AutoComplete bug d5 to d2006.
+*Fixed The missing initial letter (http:// was ttp:// on manual insertion).
+*Fixed the duplicated text in the Address box.
+*Moved constants to IEConst.
+
+IEConst
+*Updated with new constants.
+
+
+Version 13
+===================
+I extended the C support all over the package.
+The new Website http://www.bsalsa.com/ was merged into the package.
+
+TEmbeddedWB:
+*Fixed procedure CreateNewMail.
+*Changed function GetDefaultBrowserFromRegistry.
+*Fixed Anonymous crash with Flash 8.
+*Fixed MessageHandler with D6.
+*Fixed UnHook.
+*Changed PrintPreView.
+*Code cleans up.
+
+
+*Added new component TEditHost to the package
+(Info on http://www.bsalsa.com/edit_host.html).
+
+*Added new component TEditDesigner  to the package
+(Info on http://www.bsalsa.com/edit_designer.html).
+
+Added file name MSHTML_D5_D7.pas to the package source folder for 
+the benefit ofD5 to D7 users
+(This file is identical to MSHTML.pas from d2006).
+
+TLinksBar:
+*Fixed Create Event.
+*Fixed Images disappear when a link is deleted. (Thanks cch)
+*Fixed clicking the 2nd tab on the linkbar.
+*Changed CreateLinkButtons to work in real time.
+(No need to restart the client for changes to take effect anymore).
+
+TIEAddress
+*Added FCanvas.free; (Thanks Ray)
+
+TimportFavorites:
+*Added support in “Localized” Operation systems (Thanks bernie)
+By simply removing part of the favorites name check (Not needed).
+
+
+TExportFavorites:
+*Added support in “Localized” Operation systems (Thanks bernie)
+By simply removing part of the favorites name check (Not needed).
+
+Version 12
+===================
+TExportFavorites:
+*Added Enable property
+*Added option to explore the favorites file folder after the procedure;
+*Added a linkage to Web Browser or to EmbeddedWB.
+*Added a linkage to Status bar with success message.
+*Added option to navigate to the favorites file after the export procedure;
+*Added properties for the above.
+*Added a notification on success message regarding file location.
+*Removed unnecessary code and uses clouds.
+*Added a demo for the TExportFavorites.
+*Fixed path slash.
+*Tweaked the code so the Export favorites can be a stand alone Component.
+
+
+TImportFavorites:
+*Added Enable property
+*Added a linkage to Web Browser or to EmbeddedWB.
+*Added a linkage to Status bar with success message.
+*Added option to navigate to the favorites file after the import procedure;
+*Added properties for the above.
+*Removed unnecessary code and uses clouds.
+*Added a demo for the TimportFavorites.
+*Fixed path slash.
+*Tweaked the code so the TImportFavorites can be a stand alone Component.
+
+TLinksBar:
+*changed the EmbeddedWB property to support Web Browser or EmbeddedWB;
+*Fixed a memory leak in the lists.
+*Added a demo for the TLinksbar
+*Fixed GetTheLinksList (Strings instead of StringList and removed var property).
+*Fixed GetTheLinksURLs (Strings instead of StringList and removed var property).
+*Removed the cnt variable (not needed).
+*Removed the count variable (not needed).
+*Fixed images creation.
+*Added a linkage to Status bar to show url while clicking.
+*Fixed OnCreate event defaults.
+*Removed unnecessary code and uses clouds.
+*Tweaked the code so the LinksBar can be a stand alone Component.
+*Added AutoNavigate property.
+
+TRichEditWB
+*Added a demo for the TRichEditWB.
+
+TEmbeddedWB:
+*Changed WBWndProc by Ryan Bruins to prevent a Resource Handle Leak. (On Test)
+*Added function FrameCountFromDocument(SourceDoc: IHtmlDocument2): integer; by Aladin
+*Added function GetFrameFromDocument(SourceDoc: IHtmlDocument2;FrameNo: Integer): IWebBrowser2; By Aladin
+*Fixed FrameCount function by Aladin
+*Added function GetDocument: IHtmlDocument2;  by Aladin
+*Added function NavigateToFrame(FrameList: String): IHtmlDocument2;by Aladin
+
+DirMonitor:
+Clean the code and update by Robert Marquardt (robert_marquardt@gmx.de)
+
+Version 11
+===================
+*Merged all the dcr files into 1 "EWB.dcr"
+*On the way, I converted them from 16 pixels to 32.
+*Cleaned out the source.
+*Added the XmlScanner & EasyXmlScanner components to all the packages (D5 to D2006)
+*TWebUpdater--> Rewrote the Web Updater main functions for more reliable work around.
+*TWebUpdater--> Added Programmer control for the user messages.
+*TWebUpdater--> Added option to verify the updates (I have 10 applications that use the updater).
+*TWebUpdater--> Added option to update more then 100 files which are in use by the application and need restart.
+*TWebUpdater--> Improved the updater performance.
+*TWebUpdater--> Added option to post details and better looking change log (Numerator)
+*TWebUpdater--> Added a web XML smart Creator to the demos which I hope do ALL in 1. 
+I hope that ppl will stop requesting XML support from me with the new XML Creator :)
+*TWebUpdater--> Added to the Xml Creator some pages that show the Xml file in real time.
+*TWebUpdater--> Added an option to post the Xml file (I Prefer FTP software).
+        
+
+
+Version 10
+===================
+*Added in TEmbeddedWB function TEmbeddedWB.SearchThisText(const Value: String; Const iPos : Integer=1): IHTMLTxtRange; (Thank JJM).
+*Added in IETravelLog a check in Enumerate functions. (Thanks karsten bendsen).
+*Added in IETravelLog a check to GetRelativeEntry function.(Thanks karsten bendsen).
+*Change in IETravelLog ClearSession (Thanks karsten bendsen).
+
+*NEW: 2 Components were added to the package XmlScanner & EasyXmlScanner
+Both of them were made by Stefan Heymann from www.destructor.de and they are HIGHLY recommended and very easy to use.
+(We need xml for the future development of TEmbeddedWB and we thank Stefan for giving us a license to use his components.
+
+*NEW: A component I wrote: TWebUpdater.
+
+Main Goal: Update applications.
+
+Features:
+*Update applications from a web site.
+*Auto restart (If needed) (Thanks Snuki).
+*Auto Save to backup folder (Thanks Snuki).
+*Auto clean the unnecessary files.
+*Support "Hot Fixes".
+*Includes log which collect all the possible data include "Debug Info".
+*Date option in the log.
+*Auto linkage to Status Bar.
+*Auto linkage to Progress Bar.
+*Support full informative xml info file.
+*Two methods of updates: Double numbers (0.1xxx..) and normal.
+*Full back and forward negotiation with the application controls.
+*Support ONLY xml file (Thanks again Stefan).
+*Selectable user informs.
+*Full programmer / user control of the process.
+*Mail Error Report.
+*Validation of the update: company, Author, and mail.
+*Tested in 50 files to update in 1 application. Result was OK.
+*There is a lot more inside...
+
+*Added Updater Demo
+
+
+Version 9.1
+===================
+*Added Delphi 2006 package.
+*Enhanced the Delphi 2006 support.
+*Added support to D2006 in the EWB.inc file.
+*Removed the MSHTML_TLB and GifImage files from the pack (Unneeded).
+*Clean up the release.
+*Some minor code changes all over the place, for D2006.
+*Updated the EmbeddedWB demo with all the above.
+
+Version 9
+===========================
+I Created NEW Component name "TRichEditWB".
+Its Main Features are:
+*Auto highlights URL's
+*Auto Highlight XML.
+*Auto Highlight HTML.
+*Auto Navigate to Uri's.
+*Build-in Right Click extendable Menu (by properties)!!
+*Support more then 64k.
+*Build-in Dialogs.
+Support for Full DragAndDrop.
+*Images support (Bitmaps).
+*Smiles support.
+*Can be used for chats.
+*Extended chat support.
+*Tables support.
+*Add-ons components support (D&D).
+*You can also add components in run time.
+And so on...
+
+a partial Functions/ procedures list:
+==============================================
+*AddBitmapFromImagelist(const ASource: TCustomImageList; const AImageIndex:
+TImageIndex): integer;
+*AddBullets: integer;
+*AddButton(bCaption, bName: string; reLeft, bLeft, bTop:integer): integer;
+*AddCheckBox(cbCaption, cbName: string; reLeft, cbLeft,cbTop :Integer;
+Chk:Boolean): integer;
+*AddDateAndTime: integer;
+*AddEditBox(eText, eName: string; reLeft, eLeft, eTop :Integer): integer;
+*AddEmptyLine: integer;
+*AddFile(FilePath : String;Linked : bool;AsIcon :Bool): integer;
+*AddFiles(Files : TStrings;Linked : bool;AsIcon : Bool): integer;
+*AddFormatedText(const txt: string; Bold, Italic, Strikeout,
+Underline:boolean; txtColor : TColor ): integer;
+*AddImage(FilePath : String): Integer;
+*AddImages(Files: TStrings):integer;
+*AddImageUsingClipboard(FilePath : String): integer;
+*AddLineNumbering: integer;
+*AddRadioButton(rbCaption, rbName: string; reLeft, rbLeft, rbTop:integer;
+Chk: boolean): integer;
+*AddRomanNumbering: integer;
+*AddRTFSelection(sourceStream: TStream): integer;
+*AddRtfText(str: String): integer;
+*AddText(const txt: string): integer;
+*AddTextByCursor(str: string): integer;
+*ConvertBitmapToRTF(pict: TBitmap): string;
+*ChangeToANSIChangeCase(const S: string): string;
+*GetCharactersCount: integer;
+*GetLineCount: Integer;
+*GetLineFromChar(CharIndex: Integer): Integer;
+*GetLineIndex(LineNo: Integer): Integer;
+*GetLineLength(CharIndex: Integer): Integer;
+*GetNextWord(var s: string; var PrevWord: string): string;
+*GetRTFSelection(intoStream: TStream ): String;
+*GetRTFTextToString: string;
+*GetSelectedText(var SelectedText: string):boolean;
+*GetVisibleLines: Integer;
+*IsNumber(s: string): Boolean;
+*IsSeparator(Car: Char): Boolean;
+*RemoveTextFormats: integer;
+*SearchAndReplace(InSearch, InReplace: string): integer;
+*SearchForTextAndSelect(SearchText: string): string;
+*SelectLine(Index: Integer): boolean;
+*AlignText(alignment: TAlignment);
+*AppendRTF(str : String);
+*CheckCapslock;
+*CheckInsertKey;
+*CheckNumLock;
+*CreateSnapShot(Pic: TBitmap);
+*DoHighlightHTML;
+*DoHighlightXML;
+*Find;
+*GetMemStatus;
+*GoToPosition(LineNumber, CharNumber: Word);
+*LoadAsCopyFromBrowser;
+*LoadFromFile(FileName: string);
+*LoadFromStream(S: TStream);
+*LoadHTMLFromBrowser;
+*LoadStreamFromBrowser;
+*LoadStringsFromBrowser;
+*LoadTextFromBrowser;
+*MailContext;
+*MailSelected;
+*New;
+*Open;
+*PreviewInBrowser;
+*PrintAll;
+*PrintSelectedText;
+*Replace;
+*Save;
+*SaveAs;
+*SaveToFile(FileName: string);
+*SaveToStream(S: TStream);
+*ScrollToBottom;
+*crollToTop;
+*SelAll(Sender: TObject);
+*SelectFont;
+*SelectionChange; override;
+*SetColor;
+*SetFontBold;
+*SetFontColor;
+*SetFontItalic;
+*SetFontSize;
+*SetFontUnderLine;
+*SetLineSpacing(lineSpacing: Byte);
+*SetOffSetsValues(SetTo: Integer);
+*SetSelectedBgColor;
+*SetSelectionHyperLink(Hyperlink: Boolean);
+*SetTabWidth(FTabWidth: Integer);
+*SetThemes(Thm: TThemes);
+*SetToMoreThen64KB;
+*SetToOEM(var Key: Char);
+*SetWordHyperLink(Hyperlink: Boolean);
+*UndoLast(Sender: TObject);
+
+
+*Fixed EmbeddedWB procedure SearchAndHighLight (Thanks smot)
+*Restored the TIEAddress AutoComplete (To disable AutoComplete totally you need to
+Disable autosuggest too. (They are combined)I will separate them someday.
+(Thanks FS)
+
+*Updated the EmbeddedWB demo with all the above. 
+
+Version 8
+===========================
+*I Created EWB.inc file in order to have a proper Define that support all Delphi versions.
+
+*Improved D7 support.
+
+*Added Delphi 6 Support.  NEW!!
+*Added Delphi 5 Support.   NEW!!
+*Added Const to BrowseForFolderU (BIF_NEWDIALOGSTYLE = $0040;) Thanks smot
+*Added Define messages to the demo (XpMan).
+
+*Changed the demo from ValueFromIndex to Values[LinkList.Names[i]]; Thanks smot
+*Changed LinksBar from ValueFromIndex to Values[LinkList.Names[i]]; Thanks smot
+
+*Fixed the IEAddress Auto complete to stop completing on acForcerOff.
+
+*Updated the EmbeddedWB demo with all the above.
+
+Note:
+There are no more errors/warning/bugs in Delphi 6 to 2005 (That I know of).
+in the demo on Delphi 5 there some ignorable properties and the reason is that the  demo was build on D2005, and I will not build the MUNSTER demo again in d5 just for ignorable properties
+
+
+Version 7
+===========
+*Added a function to the EmbeddedWB "DesignMode"(Status : string): boolean; (Will set Design mode On & Off)
+*Added to the demo (accessories tab) a demonstration of the uses of EmbeddedWB in folders View
+*Added to the demo (accessories tab) a demonstration of the uses of EmbeddedWB As FTP (User+Password)
+*IEAddress-->Fixed the componnets dissapearing icons bug (CalculateRGN).
+*IEAddress-->Added Integer value to hold the index and prevent the hints.
+*EmbeddedWB-->Fixed ReadMargin.
+*I restructured the Packege for the newbe's.
+
+*Updated the EmbeddedWB demo with all the above.
+
+Version 6
+===========
+ 
+***NEW***
+*ADDED NEW COMPONNENT that I wrote, : "LinksBar". It will store/manipulate links like a toolbar and uses the registry
+*Added a procedure to the LinksBar "AddToLinksList"(Title, URL: string).
+*Added a procedure to the LinksBar "RemoveFromLinksList"(Title: string).
+*Added a procedure to the LinksBar "GetTheLinksList"(var LinkList: TstringList;var Count : Integer). Get Title's, Url, And List Count.
+*Added a procedure to the LinksBar "GetTheLinksURLs"(var URLList: TstringList). Get The Links List Uri’s only.
+*Added a procedure to the LinksBar "NavigateToItem"(Title: string).
+*Added a procedure to the LinksBar "CreateLinkButtons"(ImageIdx: integer).
+*Added a procedure to the LinksBar "ClearTheLinksList".
+*Added a property to the LinksBar that linkage to the EmbeddedWB (so you can press on the link and auto navigates to the link.
+*Added a proper Popupmenu to the LinksBar.
+*Added Boolean value to the LinksBar "MaxCaptionLength" (To set the button caption Length).
+*Added Boolean value to the LinksBar "Show Images" (To hide the images).
+*Added Boolean value to the LinksBar "Shown" (To hide all).
+*Added IEDownload Component to the demo to check the links.(Will upload an initial list of links and then the linksbar links.
+
+***NEW***
+The FavoritesTree had a "Face Lift"
+*Changed The tools section so now its seperated from the favorites (New root node).
+*Added a full compability with the EmbeddedWB
+*Added "Add to favorites" as a tree node.
+*Added a procedure "GetSelectedIndex(Node: TTreeNode) to override the selected  image change
+*Added a property "ShowAdd" to the FavoritesTree
+*Added internal index for the favorites.
+*Changed the images for the Favorites tree.
+*Added support in expended "folders".
+*Fixed the crash on hide Root.
+*Fixed the error on the favorites by FavIndex.
+
+
+*Added MSHTML_TLB file.
+*Added a procedure to the EmbeddedWB "GoWithQueryDetails".(Navigate and add an input query to the url like a password to the proper box).
+*Added a procedure to the EmbeddedWB "ShowImportExportFavoritesAndCookies".Long name but it do what it say :).
+*Added a procedure to the EmbeddedWB "ShowIEVersionInfo".
+*Added a procedure to the EmbeddedWB "ClearTypedUrls" (AddressBar items).
+*Added a procedure to the EmbeddedWB "ViewPageSourceHTMLToStrings("HtmlLst: TStrings).
+*Added a procedure to the EmbeddedWB "ViewPageSourceTextToStrings"(TextLst: TStrings).
+*Added a procedure to the EmbeddedWB "ViewPageImagesToStrings"(ImagesList: TStrings). Thanks Tom For The Ideas.
+*Added a procedure to the EmbeddedWB "ViewPageLinksToStrings"(LinksList: TStrings). Thanks Tom For The Ideas.
+*Added a procedure to the EmbeddedWB "ViewPageFieldsToStrings"(FieldList: TStrings). Thanks Tom For The Ideas.
+*Added a procedure to the EmbeddedWB "ViewPageFramesToStrings"(FramesList: TStrings); Thanks Tom For The Ideas.
+*Added a procedure to the EmbeddedWB "ViewPagePropertiesToStrings"(FieldList: TStrings);
+*Added a procedure to the EmbeddedWB "GetZoneIcon"(IconPath: string; var Icon: TIcon);
+*Added a procedure to the EmbeddedWB "GoSearchInMSN"(SearchTerm: string);
+*Added a procedure to the EmbeddedWB "GoSearchInYahoo"(SearchTerm: string);
+*Added a procedure to the EmbeddedWB "ExploreFolder"(Path: string); Will open The path folder to explore
+*Added a procedure to the EmbeddedWB "SaveApplicationFormSize" (Will auto save form size and windows state)
+*Added a procedure to the EmbeddedWB "RestoreApplicationFormSize". (Will auto restore form size and windows state)
+*Added a procedure to the EmbeddedWB "AddToRestrictedSiteList"(URL: string);
+*Added a procedure to the EmbeddedWB "AddToTrustedSiteList"(URL: string);
+*Added a procedure to the EmbeddedWB "AutoFillIEFormAndExcecute";
+*Added a function to the EmbeddedWB "CheckIfInTrustedList"(URL: string): Boolean; (Will return true if domain is in the trusted sites list.
+*Added a function to the EmbeddedWB "CheckIfInRestrictedList"(URL: string): Boolean; (Will return true if domain is in the Restricted sites list.
+*Added a function to the EmbeddedWB "GetIEHandle"(WebBrowser: TEmbeddedWB; ClassName: string): HWND;
+*Added a function to the EmbeddedWB "GetIPAndHostName"(var HostName, IPaddr, WSAErr: string): Boolean
+*Added a function to the EmbeddedWB "GetDefaultBrowserFromRegistry" :String.
+*Added a function to the EmbeddedWB "GetZoneIconToForm": boolean;(Will replace your form icon with the proper security zone icon.)
+*Added a function to the EmbeddedWB "GetZoneAttributes"(const URL: string): TZoneAttributes;
+*Added a function to the EmbeddedWB  GetURLSecurityZone"(var ZoneName, ZoneDescription: string;var Icon: TIcon)(1 code line to implement the security zone)(Use on NavigateComplete2);
+*Added a function to the EmbeddedWB "GetSSLStatus":(var SSLName, SSLDescription: string):boolean; (Use on NavigateComplete2).
+*Added a function to the EmbeddedWB "FillForm"(FieldName: string; Value: string): Boolean; Will fill a form field with the given string (Details).
+*Added a function to the EmbeddedWB "AddHtmlToAboutBlank"(StringToHtml: string; Value: string): Boolean; Will Enable you to add string to the about blank page.
+*Added a function to the EmbeddedWB "GetJPEGfromBrowser"(FileName: string; SourceHeight, SourceWidth, TargetHeight, TargetWidth: integer): Boolean.
+*Added a function to the EmbeddedWB "GetBmpFromBrowser"(FileName : String): Boolean.
+*Added a function to the EmbeddedWB "GetLastVisitedPage"(var LastVisitedPage: string): boolean; (Will restore the browser last visited page. Use it on the browser loading).
+*Added the uses/implementation of SecureLockIcon to the EmbeddedWB Demo.
+*Added 20 more Constants to IEConst to to invoke hidden commands in IE.
+*Added dcr files to Export/Import favorites.
+
+*changed the EmbeddedeWB Packege: Internal files were seperated to proper folders.
+*changed the EmbeddedeWB "SearchInGoogle" to "GoSearchInGoogle"
+*changed the EmbeddedeWB "NavigateToURL" to "GoWithoutTracks"
+*changed the EmbeddedeWB "CreateDesktopShortcut" internal code to a simpler one.
+*changed the EmbeddedeWB "CreateNewMail" internal code to a simpler one.
+*changed the EmbeddedeWB demo menu to a simple one All the stuff are now under sub menu's in tools section).
+
+*Fixed the FavoriteListView on Loaded bug (Index not exist).
+*Fixed the HistoryListView on Loaded bug (Index not exist).
+*Fixed the FavoriteMenu property from MenuPoition to Menu Position.
+*Fixed the text parser warnings.
+*Fixed the IEDownload bug : divide by zero exception (Thanks Rik).
+*Fixed the EmbeddedWB GetPrintValues bug: (Added exceptions and default values) (Thanks takeru_tk_81).
+*Fixed the EmbeddedWB PrintWithOptions bug: (It was located in FormWndProc-->SetWindowPos was changed from wnd to 0)
+
+*Updated the EmbeddedWB demo with all the above.
+
+Version 5
+===========
+
+****UPDATED VERSION THAT WAS ADAPTED TO DELPHI 7 TOO ************ 
+
+(I did several tests and it looks like its all working in D7 but I can not guaranty anything
+I am starting a new project now, so i have very limited time, sorry.
+I will be back to it on my spear time.)
+I hope that also for D8 but I can't test it.)
+
+*Wrote a brand new component "Export Favorites".
+*Wrote a brand new component "Import Favorites".
+
+*Added all the possible options to the Export Favorites component
+*Added all the possible options to the Import Favorites component.
+*Added User warnings (Exceptions) to the new components.
+*Added a dcr file for the new components.
+*Added a component for TMapi.. (Enable to send mail with atachments, recipients and so on).
+*Added a procedure to the EmbeddedWB "AddToFavorites"(URL, Title: string)(it will auto convert the values to the proper oleVariants)
+*Added a procedure to the EmbeddedWB "CheckOnlineStatus": Boolean; (Best use is in onCreate of your form)
+*Added a procedure to the EmbeddedWB "CreateADesktopShortcut". (True internet shortcut including the favicon);
+*Added a procedure to the EmbeddedWB "CreateNewMail".
+*Added a procedure to the EmbeddedWB "GoAboutBlank".(Will open a new blank page and mask the address to "About:Blank").
+*Added a procedure to the EmbeddedWB "GoDownloadFile(URL: string)".(Will download a file using the browser with all the flags disable).
+*Added a procedure to the EmbeddedWB "GoDownloadMaskedFile(SourceFile, TargetFile: string ;Notify: boolean);".(Will download a file with/without a user notice(Notify)).
+*Added a procedure to the EmbeddedWB "SendPageInMail(FileName: string)" (As an attachment)I can expend it with all the mail options as strings if you like.
+*Added a property to the FavoritesTreeView to linkage the Export Favorites.
+*Added a property to the FavoritesTreeView to linkage the Import Favorites.
+*Added a procedure to the FavoritesTreeView to auto open the Export Favorites.
+*Added a procedure to the FavoritesTreeView to auto open the Import Favorites.
+*Added to the demo, the options and uses of the GetSpecialFolderPath.
+*Added a proper credit file.
+
+*Changed ShowContextMenu to obtain all possible cases.
+*Changed the procedure "MailTheUrl" to "SendURLInMail"
+*changed the EmbeddedeWB to be used in d7 too.
+*changed the EmbeddedeWB demo to be used in d7 too.
+*changed the EmbeddedeWB pack to be used in d7 too.
+*Fixed a bug linked to FavoeiteTreeView Import favorite node.
+*Fixed a bug linked to FavoeiteTreeView Export favorite node.
+*Fixed the miss spell error in the History Menu position property.
+*Fixed a bug linked to the key's stroke and d9;
+*Fixed a bug in the FavoritesTreeView linked to "add folders";
+*Fixed some minor functions in thr TMapi.
+
+*Updated the EmbeddedWB demo with all the above.
+
+
+Version 4
+===========
+*Fixed the bug that made the History and Favorites menus to crash on exit.
+*Fixed the old OpenAddressBook bug.
+*Fixed the old OpenDialog bug.
+*Fixed the old Print bug.
+*Fixed the old PrintPreview bug.
+*Fixed the old PrintSetup bug.
+
+*Added a function "GetCachedFileFromURL".(Get as a string the path to the site in the cache.)
+*Added a function "GetCookie".(Return the cookie as a string (If Exist)).
+*Added a function "SetCharactersSet".(Assign a new charters set using Refresh2 level.)
+*Added a function "GetCookiessPath" (Return a string with the path).
+*Added a function "GetFavoritesPath" (Return a string with the path).
+*Added a function "GetHistoryPath" (Return a string with the path).
+*Added a function DocumentLoaded: Boolean; (Use it to pverent crash on checks).
+*Added a function GetIEHomePage (Return IE Homepage as a string).
+*Added a function GetSpecialFolderPath(CallerHandle: THandle; CSIDL: Integer): PChar;
+*Added a function OpenEudoraMail: Boolean;
+*Added a function OpenGoogleMail: Boolean;
+*Added a function OpenHotmailMail: Boolean;
+*Added a function OpenOutlookExpressMail: Boolean;
+*Added a function OpenOutlookMail: Boolean;
+*Added a function OpenYahooMail: Boolean;
+*Added a function URLFromFavorites: string;
+*Added a function URLFromHistory: string;
+*Added a function VariantIsObject(const value: OleVariant): boolean;
+*Added a procedure "Cut".
+*Added a procedure "Paste".
+*Added a procedure "ShowOrgenizeFavorites" (Show organize favorites);
+*Added a procedure "ScrolToBottom".
+*Added a procedure "ScrolToPosition"(X, Y : integer).
+*Added a procedure "ScrolToTop".
+*Added a procedure "SearchInGoogle" (Using a string as an input query for google).
+*Added a procedure name "SaveImagesDialog" that Save all the page images to a selected folder.
+*Added a procedure name "SavePageTextDialog" that save the current page text only using a dialog to a file.
+*Added a procedure name "SearchAndHighlightAll" that Search And Highlight All search terms in 1 key press.
+*Added a procedure name "ViewPageSourceText" (That show the page text only without the html).
+*Added a procedure OpenOtherWBFavorites; (Will open local favorite file of mozila / firefox / opera and so on
+*Added a procedure SetNewHomePage('Homegage'):string; (will set a new Homepage and will display a message).
+*Added BrowserForFolder unit ("SHBrowseForFolder" wrapper) with add a "New Folder" button.
+*Added Components TextIEParser.
+*Added demo for the favorites and history menu's and Tree/ListView.(1 line of code to create the menu's)
+*Added images to all the componnents.
+*Added linkage from the HistoryListView to the EmbeddedWB (Auto navigation click). 
+*Added/Fixed a new procedure name "Work offline (With a user "internet state" warning).
+*Added/Fixed a new procedure name "Work Online (With a user "internet state" warning).
+*Added a boolean property "DisableRightClickMenu" (FINALLY!! after I saw 100000000 help requests on the web);
+*Added a boolean property "HideBorders"
+*Added a boolean property "HideScrollBars"
+
+*Changed HistoryMenu & FavoritesMenu property from menupos to MenuPosition.
+*Changed the EmbeddedWB function from ShowAddressBook to OpenAddressBook.
+*Changed the EmbeddedWB function from ShowCalender to OpenCalender.
+*Changed the EmbeddedWB function from ShowNewsClient to OpenNewsClient.
+*Changed the EmbeddedWB property from find to ShowFindDialog.
+*Changed the EmbeddedWB property from Options to ShowInternetOptions.
+*Changed the EmbeddedWB property from properties to ShowPageProperties.
+*Changed the EmbeddedWB property from viewsource to ViewPageSourceHtml.
+
+*Code cleaning in the HistoryMenu & FavoritesMenu and in the embeddedWB.
+
+*Removed the old GetOffline.. Procedure. 
+*Removed the old ShowMailClient.
+
+Created a demo for all the above :)
+
+
