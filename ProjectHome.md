@@ -1,0 +1,1 @@
+EWB is an open source components pack for Delphi 5 to D2009. It allows you to create a Web Browser, Chat Client, Web updater, Html/Xml Editors and much more. Homepage: http://www.bsalsa.com
